@@ -1,5 +1,5 @@
 # l4d2_weapons
-The API provides stock of useful function to do stuffs with weapons. Basically here the reworked version of weapons.inc. The include file was written specifically for Left 4 Dead 2 Dedicated servers under SourceMod platform (SourcePawn).
+The API provides stock of useful function to do stuffs with weapons. Basically here the reworked version of **weapons.inc**. The include file was written specifically for **Left 4 Dead 2 Dedicated servers** under **SourceMod** platform (SourcePawn).
 
 ## Features:
  - SourceMod 1.7 syntax.
@@ -7,11 +7,12 @@ The API provides stock of useful function to do stuffs with weapons. Basically h
  - Provides weapons/melees ID, names, models etc.
  
 ## Note:
-l4d2_weapons.inc does not provide a way to unlock weapons, for this goal you may use any known plugins or extensions. However, if you unlock any vanilla weapons (like a knife) the l4d2_weapons.inc will detect it and support.
-If you have custom weapons on your server and want l4d2_weapons.inc to support it you have to edit the code by yourself (look for line 'custom melee' for examples)
+**l4d2_weapons** does not provide a way to unlock weapons, for this goal you may use any known plugins or extensions. However, if you unlock any vanilla weapons (like a `knife`) the **l4d2_weapons** will detect it and support.
+
+If you have custom weapons on your server and want to **l4d2_weapons** support it you have to edit the code by yourself (look for line `custom melee` for examples)
 
 ## Examples:
-l4d2_weapons_test.sp plugin provides examples of how this API can be used.
+**l4d2_weapons_test.sp** plugin provides examples of how this API can be used.
 
 ## Credits:
  - Forked from [MatthewClair/sourcemod-plugins](https://github.com/MatthewClair/sourcemod-plugins)
