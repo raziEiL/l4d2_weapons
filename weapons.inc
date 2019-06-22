@@ -9,7 +9,7 @@
 
 
 // Weapon ID enumerations.
-// These values are *NOT* arbitrary! 
+// These values are *NOT* arbitrary!
 // They are used in game as the weaponid for weapon_spawn entities
 enum WeaponId
 {
@@ -71,6 +71,29 @@ enum WeaponId
 	WEPID_UPGRADE_ITEM      // 55
 };
 
+new const bool:hasSpawnClass[WeaponId] =
+{
+	false, true, true,		// 0
+	true, true, true,		// 3
+	true, true, true,		// 6
+	true, true, true,		// 9
+	true, true, true,		// 12
+	true, true, false,		// 15
+	false, true, true,		// 18
+	true, false, true,		// 21
+	true, true, true,		// 24
+	false, false, false, 	// 27
+	true, true, true,		// 30
+	false, false, false,	// 33
+	false, true, false,		// 36
+	false, false, false,	// 39
+	false, false, false,	// 42
+	false, false, false,	// 45
+	false, false, false,	// 48
+	false, false, false,	// 51
+	false, false			// 54
+};
+
 // Weapon names for each of the weapons, used in identification.
 new const String:WeaponNames[WeaponId][] =
 {
@@ -100,56 +123,43 @@ new const String:WeaponNames[WeaponId][] =
 new const String:WeaponModels[WeaponId][] =
 {
 	"",
-	"/w_models/weapons/w_pistol_B.mdl",
-	"/w_models/weapons/w_smg_uzi.mdl",
-	"/w_models/weapons/w_shotgun.mdl",
-	"/w_models/weapons/w_autoshot_m4super.mdl",
-	"/w_models/weapons/w_rifle_m16a2.mdl",
-	"/w_models/weapons/w_sniper_mini14.mdl",
-	"/w_models/weapons/w_smg_a.mdl",
-	"/w_models/weapons/w_pumpshotgun_a.mdl",
-	"/w_models/weapons/w_desert_rifle.mdl",           // "/w_models/weapons/w_rifle_b.mdl"
-	"/w_models/weapons/w_sniper_military.mdl",
-	"/w_models/weapons/w_shotgun_spas.mdl",
-	"/w_models/weapons/w_eq_medkit.mdl",
-	"/w_models/weapons/w_eq_molotov.mdl",
-	"/w_models/weapons/w_eq_pipebomb.mdl",
-	"/w_models/weapons/w_eq_painpills.mdl",
-	"/props_junk/gascan001a.mdl",
-	"/props_junk/propanecanister001.mdl",
-	"/props_equipment/oxygentank01.mdl",
-	"",                                               // "/weapons/w_knife_t.mdl",
-	                                                  // "/weapons/melee/w_bat.mdl",
-	                                                  // "/weapons/melee/w_chainsaw.mdl
-	                                                  // "/weapons/melee/w_cricket_bat.mdl",
-	                                                  // "/weapons/melee/w_crowbar.mdl",
-	                                                  // "/weapons/melee/w_didgeridoo.mdl",
-	                                                  // "/weapons/melee/w_electric_guitar.mdl",
-	                                                  // "/weapons/melee/w_fireaxe.mdl",
-	                                                  // "/weapons/melee/w_frying_pan.mdl",
-	                                                  // "/weapons/melee/w_golfclub.mdl",
-	                                                  // "/weapons/melee/w_katana.mdl",
-	                                                  // "/weapons/melee/w_machete.mdl",
-	                                                  // "/weapons/melee/w_riotshield.mdl",
-	                                                  // "/weapons/melee/w_tonfa.mdl"
-	"/weapons/melee/w_chainsaw.mdl",
-	"/w_models/weapons/w_grenade_launcher.mdl",
+	"models/w_models/weapons/w_pistol_B.mdl",
+	"models/w_models/weapons/w_smg_uzi.mdl",
+	"models/w_models/weapons/w_shotgun.mdl",
+	"models/w_models/weapons/w_autoshot_m4super.mdl",
+	"models/w_models/weapons/w_rifle_m16a2.mdl",
+	"models/w_models/weapons/w_sniper_mini14.mdl",
+	"models/w_models/weapons/w_smg_a.mdl",
+	"models/w_models/weapons/w_pumpshotgun_a.mdl",
+	"models/w_models/weapons/w_desert_rifle.mdl",           // "models/w_models/weapons/w_rifle_b.mdl"
+	"models/w_models/weapons/w_sniper_military.mdl",
+	"models/w_models/weapons/w_shotgun_spas.mdl",
+	"models/w_models/weapons/w_eq_medkit.mdl",
+	"models/w_models/weapons/w_eq_molotov.mdl",
+	"models/w_models/weapons/w_eq_pipebomb.mdl",
+	"models/w_models/weapons/w_eq_painpills.mdl",
+	"models/props_junk/gascan001a.mdl",
+	"models/props_junk/propanecanister001a.mdl",
+	"models/props_equipment/oxygentank01.mdl",
 	"",
-	"/w_models/weapons/w_eq_adrenaline.mdl",
-	"/w_models/weapons/w_eq_defibrillator.mdl",
-	"/w_models/weapons/w_eq_bile_flask.mdl",
-	"/w_models/weapons/w_rifle_ak47.mdl",
-	"/props_junk/gnome.mdl",
-	"/w_models/weapons/w_cola.mdl",
-	"/props_junk/explosive_box001.mdl",
-	"/w_models/weapons/w_eq_incendiary_ammopack.mdl",
-	"/w_models/weapons/w_eq_explosive_ammopack.mdl",
-	"/w_models/weapons/w_desert_eagle.mdl",
-	"/w_models/weapons/w_smg_mp5.mdl",
-	"/w_models/weapons/w_rifle_sg552.mdl",
-	"/w_models/weapons/w_sniper_awp.mdl",
-	"/w_models/weapons/w_sniper_scout.mdl",
-	"/w_models/weapons/w_m60.mdl",
+	"models/weapons/melee/w_chainsaw.mdl",
+	"models/w_models/weapons/w_grenade_launcher.mdl",
+	"",
+	"models/w_models/weapons/w_eq_adrenaline.mdl",
+	"models/w_models/weapons/w_eq_defibrillator.mdl",
+	"models/w_models/weapons/w_eq_bile_flask.mdl",
+	"models/w_models/weapons/w_rifle_ak47.mdl",
+	"models/props_junk/gnome.mdl",
+	"models/w_models/weapons/w_cola.mdl",
+	"models/props_junk/explosive_box001.mdl",
+	"models/w_models/weapons/w_eq_incendiary_ammopack.mdl",
+	"models/w_models/weapons/w_eq_explosive_ammopack.mdl",
+	"models/w_models/weapons/w_desert_eagle.mdl",
+	"models/w_models/weapons/w_smg_mp5.mdl",
+	"models/w_models/weapons/w_rifle_sg552.mdl",
+	"models/w_models/weapons/w_sniper_awp.mdl",
+	"models/w_models/weapons/w_sniper_scout.mdl",
+	"models/w_models/weapons/w_m60.mdl",
 	"",
 	"",
 	"",
@@ -230,6 +240,25 @@ new const WeaponSlots[_:WeaponId] =
 	-1  // WEPID_UPGRADE_ITEM
 };
 
+/*
+new const String:WeaponMeleeModels[][] =
+{
+	"models/weapons/w_knife_t.mdl",
+	"models/weapons/melee/w_bat.mdl",
+	"models/weapons/melee/w_cricket_bat.mdl",
+	"models/weapons/melee/w_crowbar.mdl",
+	"models/weapons/melee/w_didgeridoo.mdl",
+	"models/weapons/melee/w_electric_guitar.mdl",
+	"models/weapons/melee/w_fireaxe.mdl",
+	"models/weapons/melee/w_frying_pan.mdl",
+	"models/weapons/melee/w_golfclub.mdl",
+	"models/weapons/melee/w_katana.mdl",
+	"models/weapons/melee/w_machete.mdl",
+	"models/weapons/melee/w_riotshield.mdl",
+	"models/weapons/melee/w_tonfa.mdl"
+};
+*/
+
 static Handle:hWeaponNamesTrie;
 
 
@@ -283,7 +312,7 @@ stock bool:HasValidWeaponModel(WeaponId:wepid)
  * @param weaponName	Weapon name string to look up Id from
  * @return				The corresponding WeaponId if found, else WEPID_NONE
  */
-stock WeaponId:WeaponNameToId(const String:weaponName[])
+stock WeaponId:WeaponNameToId(String:weaponName[])
 {
 	if(hWeaponNamesTrie == INVALID_HANDLE)
 	{
@@ -297,7 +326,20 @@ stock WeaponId:WeaponNameToId(const String:weaponName[])
 	return WEPID_NONE;
 }
 
-static InitWeaponNamesTrie()
+// This is the same as WeaponNameToId(), except it check and removes '_spawn' suffix
+stock WeaponId:WeaponNameToIdEx(String:weaponName[])
+{
+	new len = HasSpawnSuffix(weaponName);
+	if (len){
+		decl String:sTemp[len];
+		strcopy(sTemp, len, weaponName);
+		RemoveSpawnSuffix(sTemp, len);
+		return WeaponNameToId(sTemp);
+	}
+	return WeaponNameToId(weaponName);
+}
+
+stock static InitWeaponNamesTrie()
 {
 	hWeaponNamesTrie = CreateTrie();
 	for(new i = 0; i < _:WeaponId; i++)
@@ -330,14 +372,7 @@ stock WeaponId:IdentifyWeapon(entity)
 		return WeaponId:GetEntProp(entity,Prop_Send,"m_weaponID");
 	}
 
-	new len = strlen(class);
-	if(len-6 > 0 && StrEqual(class[len-6], "_spawn"))
-	{
-		class[len-6]='\0';
-		return WeaponNameToId(class);
-	}
-	
-	return WeaponNameToId(class);
+	return WeaponNameToIdEx(class);
 }
 
 // returns an entity of the new weapon spawn on success
@@ -358,32 +393,85 @@ stock ConvertWeaponSpawn(entity, WeaponId:wepid, count=5, const String:model[] =
 	if(!IsValidEntity(entity)) return -1;
 	if(!IsValidWeaponId(wepid)) return -1;
 	if(model[0] == '\0' && !HasValidWeaponModel(wepid)) return -1;
-	
-	
+
+
 	new Float:origins[3], Float:angles[3];
 	GetEntPropVector(entity, Prop_Send, "m_vecOrigin", origins);
 	GetEntPropVector(entity, Prop_Send, "m_angRotation", angles);
-	
+
 	AcceptEntityInput(entity, "kill");
-	
+
 	entity = CreateEntityByName("weapon_spawn");
 	if(!IsValidEntity(entity)) return -1;
-	
+
 	SetEntProp(entity, Prop_Send, "m_weaponID", wepid);
+
 	if(model[0] == '\0')
 	{
+		if(!IsModelPrecached(model))
+		{
+			if(PrecacheModel(model) <= 0)
+			{
+				return -1;
+			}
+		}
+
 		SetEntityModel(entity, model);
 	}
 	else
 	{
+		if(!IsModelPrecached(WeaponModels[wepid]))
+		{
+			if(PrecacheModel(WeaponModels[wepid]) <= 0)
+			{
+				return -1;
+			}
+		}
+
 		SetEntityModel(entity, WeaponModels[wepid]);
 	}
 	decl String:sCount[64];
 	IntToString(count, sCount, sizeof(sCount));
 	DispatchKeyValue(entity, "count", sCount);
-	
+
 	TeleportEntity(entity, origins, angles, NULL_VECTOR);
 	DispatchSpawn(entity);
 	SetEntityMoveType(entity,MOVETYPE_NONE);
 	return entity;
+}
+
+// Precache valid weapon models
+stock PrecacheWeapons()
+{
+	for(new i = 1; i < _:WEPID_TANK_CLAW; i++)
+	{
+		if (HasValidWeaponModel(WeaponId:i) && !IsModelPrecached(WeaponModels[WeaponId:i]))
+			PrecacheModel(WeaponModels[WeaponId:i]);
+	}
+}
+
+// Suffix helpers
+stock AddSpawnSuffix(String:weaponName[], String:store[], len)
+{
+	if (!HasSpawnSuffix(weaponName))
+		FormatEx(store, len, "%s_spawn", weaponName);
+}
+
+stock RemoveSpawnSuffix(String:weaponName[], Len = 0)
+{
+	if (Len)
+		weaponName[Len-6]='\0';
+	else {
+		new len = HasSpawnSuffix(weaponName);
+		if (len)
+			weaponName[len-6]='\0';
+	}
+}
+
+stock HasSpawnSuffix(String:weaponName[])
+{
+	new len = strlen(weaponName);
+	if (len-6 > 0 && StrEqual(weaponName[len-6], "_spawn"))
+		return len;
+	return 0;
 }
