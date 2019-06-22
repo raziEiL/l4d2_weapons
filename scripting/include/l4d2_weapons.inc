@@ -39,7 +39,7 @@
 #endif
 #define __l4d2_weapons_inc__
 
-#define _NAME_LENGTH 64
+#define L4DWEP_NAME_LEN 64
 
 // ------------------------------WEAPON FUNCTION------------------------------------
 
@@ -131,7 +131,7 @@ static const bool l_bHasSpawnClass[WEPID_SIZE] =
 };
 
 // Weapon names for each of the weapons, used in identification.
-static const char l_sWeaponNames[WEPID_SIZE][_NAME_LENGTH] =
+static const char l_sWeaponNames[WEPID_SIZE][L4DWEP_NAME_LEN] =
 {
 	"weapon_none", "weapon_pistol", "weapon_smg",                                            // 0
 	"weapon_pumpshotgun", "weapon_autoshotgun", "weapon_rifle",                              // 3
@@ -276,47 +276,47 @@ static const int l_iWeaponSlots[WEPID_SIZE] =
 	-1  // WEPID_UPGRADE_ITEM
 };
 
-stock static StringMap mWeaponNames;
+stock static StringMap l_mWeaponNames;
 
 /**
- * Initializes internal structure necessary for weapons.inc functions
+ * Initializes internal structure necessary for l4d2_weapons.inc functions
  * @remark It is recommended that you run this function on plugin start, but not necessary
  *
  * @noreturn
  */
-stock void L4D2Weapons_Init()
+stock void L4D2Wep_Init()
 {
-	if(mWeaponNames == null)
+	if (l_mWeaponNames == null)
 	{
-		InitWeaponNamesMap();
+		InitNamesMap();
 	}
 }
 
-stock static void InitWeaponNamesMap()
+stock static void InitNamesMap()
 {
-	mWeaponNames = new StringMap();
-	for(int i; i < WEPID_SIZE; i++)
+	l_mWeaponNames = new StringMap();
+	for (int i; i < WEPID_SIZE; i++)
 	{
-		mWeaponNames.SetValue(l_sWeaponNames[i], i);
+		l_mWeaponNames.SetValue(l_sWeaponNames[i], i);
 	}
 }
 
-stock char[] GetWepNameByID(int wepID)
+stock char[] L4D2Wep_GetNameByID(int wepID)
 {
 	return l_sWeaponNames[wepID];
 }
 
-stock bool GetWepHasSpawnClassByID(int wepID)
+stock bool L4D2Wep_HasSpawnClass(int wepID)
 {
 	return l_bHasSpawnClass[wepID];
 }
 
-stock char[] GetWepModelByID(int wepID)
+stock char[] L4D2Wep_GetModelByID(int wepID)
 {
 	return l_sWeaponModels[wepID];
 }
 
-stock int GetWepSlotByID(int wepID)
+stock int L4D2Wep_GetSlotByID(int wepID)
 {
 	return l_iWeaponSlots[wepID];
 }
@@ -328,7 +328,7 @@ stock int GetWepSlotByID(int wepID)
  * @param wepID		WEPID to check for validity
  * @return True if wepID is valid, false otherwise.
  */
-stock bool IsValidWeaponID(int wepID)
+stock bool L4D2Wep_IsValidID(int wepID)
 {
 	return wepID >= WEPID_NONE && wepID < WEPID_SIZE;
 }
@@ -340,9 +340,9 @@ stock bool IsValidWeaponID(int wepID)
  * @param wepID		WEPID to check for a known weapon model for.
  * @return True if a valid weapon model exists for WEPID, false otherwise.
  */
-stock bool HasValidWeaponModel(int wepID)
+stock bool L4D2Wep_HasValidModel(int wepID)
 {
-	return l_sWeaponModels[wepID][0];
+	return l_sWeaponModels[wepID][0] != '\0';
 }
 
 /**
@@ -351,31 +351,31 @@ stock bool HasValidWeaponModel(int wepID)
  * @param weaponName	Weapon name string to look up Id from
  * @return				The corresponding WeaponId if found, else WEPID_NONE
  */
-stock int WeaponNameToID(char[] weaponName)
+stock int L4D2Wep_NameToID(char[] weaponName)
 {
-	if(mWeaponNames == null)
+	if (l_mWeaponNames == null)
 	{
-		InitWeaponNamesMap();
+		InitNamesMap();
 	}
 	int iID;
-	if(mWeaponNames.GetValue(weaponName, iID))
+	if (l_mWeaponNames.GetValue(weaponName, iID))
 	{
 		return iID;
 	}
 	return WEPID_NONE;
 }
 
-// This is the same as WeaponNameToID(), except it check and removes '_spawn' suffix
-stock int WeaponNameToIDEx(char[] weaponName)
+// This is the same as L4D2Wep_NameToID(), except it check and removes '_spawn' suffix
+stock int L4D2Wep_NameToIDEx(char[] weaponName)
 {
-	int len = HasSpawnSuffix(weaponName);
+	int len = L4D2Wep_HasSpawnSuffix(weaponName);
 	if (len){
 		char[] sTemp = new char[len];
 		strcopy(sTemp, len, weaponName);
-		RemoveSpawnSuffix(sTemp, len);
-		return WeaponNameToID(sTemp);
+		L4D2Wep_RemoveSpawnSuffix(sTemp, len);
+		return L4D2Wep_NameToID(sTemp);
 	}
-	return WeaponNameToID(weaponName);
+	return L4D2Wep_NameToID(weaponName);
 }
 
 /**
@@ -385,7 +385,7 @@ stock int WeaponNameToIDEx(char[] weaponName)
  * @param entity		Index of entity to identify
  * @return WEPID for the entity if it is a weapon, WEPID_NONE otherwise
  */
-stock int IdentifyWeapon(int entity)
+stock int L4D2Wep_Identify(int entity)
 {
 	if(entity < MAXPLAYERS+1 || !IsValidEntity(entity))
 		return WEPID_NONE;
@@ -397,7 +397,7 @@ stock int IdentifyWeapon(int entity)
 	if (HasEntProp(entity, Prop_Send, "m_weaponID"))
 		return GetEntProp(entity, Prop_Send, "m_weaponID");
 
-	return WeaponNameToIDEx(sClass);
+	return L4D2Wep_NameToIDEx(sClass);
 }
 
 // returns an entity of the new weapon spawn on success
@@ -408,16 +408,16 @@ stock int IdentifyWeapon(int entity)
  *		Also, requires the weapon to either have a Valid weapon model or have one provided
  *
  * @param entity		Index of entity to convert to weapon spawn
- * @param wepID			WeaponId of the weapon to have the spawner hold
+ * @param wepID			ID of the weapon to have the spawner hold
  * @param count			Weapon count for the spawner (default 5)
  * @param model			World model to use for the weapon spawn
  * @return entity of the new weapon spawn, or -1 on errors.
  */
-stock int ConvertWeaponSpawn(int entity, int wepID, int count = 5, const char[] model = "")
+stock int L4D2Wep_ConvertWeaponSpawn(int entity, int wepID, int count = 5, const char[] model = "")
 {
 	if(!IsValidEntity(entity)) return -1;
 	if(!IsValidWeaponId(wepID)) return -1;
-	if(model[0] == '\0' && !HasValidWeaponModel(wepID)) return -1;
+	if(model[0] == '\0' && !L4D2Wep_HasValidModel(wepID)) return -1;
 
 
 	float origins[3], angles[3];
@@ -465,37 +465,37 @@ stock int ConvertWeaponSpawn(int entity, int wepID, int count = 5, const char[] 
 	return entity;
 }
 
-// Precache weapon world models
-stock void PrecacheWepModels()
+// Precache weapon world models (only for valid mdl)
+stock void L4D2Wep_PrecacheModels()
 {
 	for(int i = WEPID_PISTOL; i < WEPID_TANK_CLAW; i++)
 	{
-		if (HasValidWeaponModel(i) && !IsModelPrecached(l_sWeaponModels[i]))
+		if (L4D2Wep_HasValidModel(i) && !IsModelPrecached(l_sWeaponModels[i]))
 			PrecacheModel(l_sWeaponModels[i], true);
 	}
 }
 
 // Suffix helpers. Do this: "weapon_rifle" -> "weapon_rifle_spawn"
-stock void AddSpawnSuffix(char[] weaponName, char[] store, int len)
+stock void L4D2Wep_AddSpawnSuffix(char[] weaponName, char[] store, int len)
 {
-	if (!HasSpawnSuffix(weaponName))
-		FormatEx(store, len, "%s_spawn", weaponName);
+	if (!L4D2Wep_HasSpawnSuffix(weaponName))
+		Format(store, len, "%s_spawn", weaponName);
 }
 
 // Do this: "weapon_rifle_spawn" -> "weapon_rifle"
-stock void RemoveSpawnSuffix(char[] weaponName, int Len = 0)
+stock void L4D2Wep_RemoveSpawnSuffix(char[] weaponName, int Len = 0)
 {
 	if (Len)
 		weaponName[Len-6]='\0';
 	else {
-		int len = HasSpawnSuffix(weaponName);
+		int len = L4D2Wep_HasSpawnSuffix(weaponName);
 		if (len)
 			weaponName[len-6]='\0';
 	}
 }
 
 // Check for "_spawn" suffix
-stock int HasSpawnSuffix(char[] weaponName)
+stock int L4D2Wep_HasSpawnSuffix(char[] weaponName)
 {
 	int len = strlen(weaponName);
 	if (len-6 > 0 && StrEqual(weaponName[len-6], "_spawn"))
@@ -528,7 +528,7 @@ enum ()
 	MELEEID_SIZE
 }
 
-static const char l_sMeleeNames[MELEEID_SIZE][_NAME_LENGTH] =
+static const char l_sMeleeNames[MELEEID_SIZE][L4DWEP_NAME_LEN] =
 {
 	"fireaxe",
 	"baseball_bat",
@@ -568,7 +568,7 @@ static const char l_sMeleeModels[MELEEID_SIZE][PLATFORM_MAX_PATH] =
 	"models/weapons/melee/w_sledgehammer.mdl"
 };
 
-static StringMap mMeleeNames;
+static StringMap l_mMeleeNames;
 
 /**
  * Initializes internal structure necessary for weapons.inc functions
@@ -576,9 +576,9 @@ static StringMap mMeleeNames;
  *
  * @noreturn
  */
-stock void L4D2Melees_Init()
+stock void L4D2Wep_InitMelees()
 {
-	if(mMeleeNames == null)
+	if (l_mMeleeNames == null)
 	{
 		InitMeleeNamesMap();
 	}
@@ -586,19 +586,19 @@ stock void L4D2Melees_Init()
 
 stock static void InitMeleeNamesMap()
 {
-	mMeleeNames = new StringMap();
-	for(int i; i < MELEEID_SIZE; i++)
+	l_mMeleeNames = new StringMap();
+	for (int i; i < MELEEID_SIZE; i++)
 	{
-		mMeleeNames.SetValue(l_sMeleeNames[i], i);
+		l_mMeleeNames.SetValue(l_sMeleeNames[i], i);
 	}
 }
 
-stock char GetMeleeNameByID(int meleepID)
+stock char L4D2Wep_GetMeleeNameByID(int meleepID)
 {
 	return l_sMeleeNames[meleepID];
 }
 
-stock char GetMeleeModelByID(int meleepID)
+stock char L4D2Wep_GetMeleeModelByID(int meleepID)
 {
 	return l_sMeleeModels[meleepID];
 }
@@ -610,7 +610,7 @@ stock char GetMeleeModelByID(int meleepID)
  * @param meleeID		MELEEID to check for validity
  * @return True if meleeID is valid, false otherwise.
  */
-stock bool IsValidMeleeID(int meleeID)
+stock bool L4D2Wep_IsValidMeleeID(int meleeID)
 {
 	return meleeID >= MELEEID_FIREAXE && meleeID < MELEEID_SIZE;
 }
@@ -621,14 +621,14 @@ stock bool IsValidMeleeID(int meleeID)
  * @param meleeName 	Melee name string to look up Id from
  * @return				The corresponding MELEEID if found, else MELEEID_NONE
  */
-stock int MeleeNameToID(char[] meleeName)
+stock int L4D2Wep_MeleeNameToID(char[] meleeName)
 {
-	if(mMeleeNames == null)
+	if (l_mMeleeNames == null)
 	{
 		InitMeleeNamesMap();
 	}
 	int iID;
-	if(mMeleeNames.GetValue(meleeName, iID))
+	if (l_mMeleeNames.GetValue(meleeName, iID))
 	{
 		return iID;
 	}
@@ -636,41 +636,42 @@ stock int MeleeNameToID(char[] meleeName)
 }
 
 /**
- * Identifies a entity as a MELEEID. Use IdentifyWeapon() for identifies melee_spawn class
+ * Identifies a entity as a MELEEID.
  *
  * @param entity		Index of entity to identify
- * @return MELEEID for the entity if it is a melee, MELEEID_NONE otherwise
+ * @param spawn			Identifies weapon_melee_spawn, weapon_item_spawn classes
+ * @return MELEEID for the entity if it is a weapon_melee, MELEEID_NONE otherwise
  */
-stock int IdentifyMelee(int entity)
+stock int L4D2Wep_IdentifyMelee(int entity, bool spawn = false)
 {
-	if (entity < MAXPLAYERS+1 || !IsValidEntity(entity) || !HasEntProp(entity, Prop_Data, "m_strMapSetScriptName"))
+	if (entity < MAXPLAYERS+1 || !IsValidEntity(entity) || !HasEntProp(entity, Prop_Data, spawn ? "m_iszMeleeWeapon" : "m_strMapSetScriptName"))
 	{
 		return MELEEID_NONE;
 	}
 
-	char sMelee[_NAME_LENGTH];
-	GetEntPropString(entity, Prop_Data, "m_strMapSetScriptName", sMelee, sizeof(sMelee));
+	char sMelee[L4DWEP_NAME_LEN];
+	GetEntPropString(entity, Prop_Data, spawn ? "m_iszMeleeWeapon" : "m_strMapSetScriptName", sMelee, sizeof(sMelee));
 
-	return MeleeNameToID(sMelee);
+	return L4D2Wep_MeleeNameToID(sMelee);
 }
 
-static char l_sAvailableMelee[MELEEID_SIZE][_NAME_LENGTH];
+static char l_sAvailableMelee[MELEEID_SIZE][L4DWEP_NAME_LEN];
 static int l_iAvailableMeleeCount;
 
 /**
- * Initializes/updates internal structure necessary for IsValidMelee function
+ * Initializes/updates internal structure necessary for L4D2Wep_IsValidMelee function
  * @remark It NECESSARY to RUN this function OnMapStart()!
  *
  * @noreturn
  */
-stock void UpdateValidMeleeClasses()
+stock void L4D2Wep_OnMapStart()
 {
     l_iAvailableMeleeCount = 0;
 
     char sMeleeWeap[sizeof(l_sAvailableMelee[])];
     int iTableIndex = FindStringTable("MeleeWeapons"), iCountRows = GetStringTableNumStrings(iTableIndex);
 
-    for (int i; i < iCountRows; i++ )
+    for (int i; i < iCountRows; i++)
     {
         ReadStringTable(iTableIndex, i, sMeleeWeap, sizeof(sMeleeWeap));
         Format(l_sAvailableMelee[l_iAvailableMeleeCount++], sizeof(l_sAvailableMelee[]), sMeleeWeap);
@@ -678,11 +679,11 @@ stock void UpdateValidMeleeClasses()
 }
 
 // Check if melee is available on current map
-stock bool IsValidMelee(char[] meleeName)
+stock bool L4D2Wep_IsValidMelee(char[] meleeName)
 {
-	for(int i; i < l_iAvailableMeleeCount; i++)
+	for (int i; i < l_iAvailableMeleeCount; i++)
 	{
-		if(StrEqual(meleeName, l_sAvailableMelee[i], false))
+		if (StrEqual(meleeName, l_sAvailableMelee[i], false))
 		{
 			return true;
 		}
@@ -692,7 +693,7 @@ stock bool IsValidMelee(char[] meleeName)
 }
 
 // Precache melee world models. Probably for debugging purpose only.
-stock void PrecacheMeleeModels()
+stock void L4D2Wep_PrecacheMeleeModels()
 {
 	for(int i = MELEEID_FIREAXE; i < MELEEID_SIZE; i++)
 	{
@@ -711,14 +712,14 @@ enum ()
 }
 
 // Identifies a entity as WEPTYPE
-stock int IdentifyTypeByEnt(int entity, int &id = 0)
+stock int L4D2Wep_IdentifyAnyByEnt(int entity, int &id = 0)
 {
-	int iID = IdentifyMelee(entity);
+	int iID = L4D2Wep_IdentifyMelee(entity);
 	int iWepType;
 
 	if (iID == MELEEID_NONE){
 
-		iID = IdentifyWeapon(entity);
+		iID = L4D2Wep_Identify(entity);
 
 		if (iID == WEPID_NONE)
 			iWepType = WEPTYPE_NONE;
@@ -733,14 +734,14 @@ stock int IdentifyTypeByEnt(int entity, int &id = 0)
 }
 
 // Identifies a string name as WEPTYPE
-stock int IdentifyTypeByName(char[] name, int &id = 0)
+stock int L4D2Wep_IdentifyAnyByName(char[] name, int &id = 0)
 {
-	int iID = MeleeNameToID(name);
+	int iID = L4D2Wep_MeleeNameToID(name);
 	int iWepType;
 
 	if (iID == MELEEID_NONE){
 
-		iID = WeaponNameToIDEx(name);
+		iID = L4D2Wep_NameToIDEx(name);
 
 		if (iID == WEPID_NONE)
 			iWepType = WEPTYPE_NONE;
@@ -755,7 +756,30 @@ stock int IdentifyTypeByName(char[] name, int &id = 0)
 }
 
 // Is melee or weapon has NONE ID
-stock bool IsNoneID(int id)
+stock bool L4D2Wep_IsNoneAnyID(int id, int type)
 {
-	return id == MELEEID_NONE || id == WEPID_NONE;
+	return id == (type == WEPTYPE_WEP ? WEPID_NONE : MELEEID_NONE);
+}
+
+stock bool L4D2Wep_IsValidAnyID(int id, int type)
+{
+	return type == WEPTYPE_WEP ? L4D2Wep_IsValidID(id) : L4D2Wep_IsValidMeleeID(id);
+}
+
+stock void L4DWep_GiveAnyByName(int client, char[] weaponName)
+{
+	CheatCommand(client, "give", weaponName);
+}
+
+stock void L4DWep_GiveAnyByID(int client, int id, int type)
+{
+	CheatCommand(client, "give", type == WEPTYPE_WEP ? L4D2Wep_GetNameByID(id) : L4D2Wep_GetMeleeNameByID(id));
+}
+
+stock static void CheatCommand(int client, char[] command, char[] args = "")
+{
+	int iFlags = GetCommandFlags(command);
+	SetCommandFlags(command, iFlags & ~FCVAR_CHEAT);
+	FakeClientCommand(client, "%s %s", command, args);
+	SetCommandFlags(command, iFlags);
 }
