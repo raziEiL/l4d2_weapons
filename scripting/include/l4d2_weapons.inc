@@ -3,6 +3,7 @@
  * =============================================================================
  * l4d2_weapons
  * Provides a set of functions for weapon/melee identification and manipulation.
+ * GitHub: https://github.com/raziEiL/l4d2_weapons
  *
  * l4d2_weapons (C)2019 raziEiL [disawar1] <mr.raz4291@gmail.com>
  * SourceMod (C)2004-2008 AlliedModders LLC.  All rights reserved.
@@ -29,7 +30,7 @@
  * exceptions, found in LICENSE.txt (as of this writing, version JULY-31-2007),
  * or <http://www.sourcemod.net/license.php>.
  */
- 
+
 #include <sourcemod>
 #include <sdktools>
 
@@ -392,7 +393,7 @@ stock int IdentifyWeapon(int entity)
 	char sClass[64];
 	if (!GetEntityClassname(entity, sClass, sizeof(sClass)))
 		return WEPID_NONE;
-	
+
 	if (HasEntProp(entity, Prop_Send, "m_weaponID"))
 		return GetEntProp(entity, Prop_Send, "m_weaponID");
 
@@ -529,7 +530,7 @@ enum ()
 
 static const char l_sMeleeNames[MELEEID_SIZE][_NAME_LENGTH] =
 {
-	"fireaxe", 
+	"fireaxe",
 	"baseball_bat",
 	"cricket_bat",
 	"crowbar",
