@@ -1,5 +1,5 @@
 # l4d2_weapons
-Provides stock for developers of useful function to do stuffs with weapons. Basically here the reworked version of weapons.inc. The include file was written specifically for Left 4 Dead 2 Dedicated server under SourceMod platform (SourcePawn).
+Provides stock of useful function to do stuffs with weapons. Basically here the reworked version of weapons.inc. The include file was written specifically for Left 4 Dead 2 Dedicated server under SourceMod platform (SourcePawn).
 
 ## Features:
  - SourceMod 1.7 syntax.
