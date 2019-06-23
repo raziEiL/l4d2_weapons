@@ -1,4 +1,5 @@
 # l4d2_weapons
+**Status: in development**  
 The API provides stock of useful function to do stuffs with weapons. Basically here the reworked version of **weapons.inc**. The include file was written specifically for **Left 4 Dead 2 Dedicated servers** under **SourceMod** platform (SourcePawn).
 
 ## Features:
