@@ -276,7 +276,7 @@ static const int l_iWeaponSlots[WEPID_SIZE] =
 	-1  // WEPID_UPGRADE_ITEM
 };
 
-stock static StringMap l_mWeaponNames;
+static StringMap l_mWeaponNames;
 
 /**
  * Initializes internal structure necessary for l4d2_weapons.inc functions
@@ -706,13 +706,13 @@ stock void L4D2Wep_PrecacheMeleeModels()
 
 enum ()
 {
-	WEPTYPE_NONE = -1,
-	WEPTYPE_WEP,
-	WEPTYPE_MELEE
+	ITEM_NONE = -1,
+	ITEM_WEP,
+	ITEM_MELEE
 }
 
 // Identifies a entity as WEPTYPE
-stock int L4D2Wep_IdentifyAnyByEnt(int entity, int &id = 0)
+stock int L4D2Wep_IdentifyItemByEnt(int entity, int &id = 0)
 {
 	int iID = L4D2Wep_IdentifyMelee(entity);
 	int iWepType;
@@ -722,19 +722,19 @@ stock int L4D2Wep_IdentifyAnyByEnt(int entity, int &id = 0)
 		iID = L4D2Wep_Identify(entity);
 
 		if (iID == WEPID_NONE)
-			iWepType = WEPTYPE_NONE;
+			iWepType = ITEM_NONE;
 		else
-			iWepType = WEPTYPE_WEP;
+			iWepType = ITEM_WEP;
 	}
 	else
-		iWepType = WEPTYPE_MELEE;
+		iWepType = ITEM_MELEE;
 
 	id = iID;
 	return iWepType;
 }
 
 // Identifies a string name as WEPTYPE
-stock int L4D2Wep_IdentifyAnyByName(char[] name, int &id = 0)
+stock int L4D2Wep_IdentifyItemByName(char[] name, int &id = 0)
 {
 	int iID = L4D2Wep_MeleeNameToID(name);
 	int iWepType;
@@ -744,36 +744,36 @@ stock int L4D2Wep_IdentifyAnyByName(char[] name, int &id = 0)
 		iID = L4D2Wep_NameToIDEx(name);
 
 		if (iID == WEPID_NONE)
-			iWepType = WEPTYPE_NONE;
+			iWepType = ITEM_NONE;
 		else
-			iWepType = WEPTYPE_WEP;
+			iWepType = ITEM_WEP;
 	}
 	else
-		iWepType = WEPTYPE_MELEE;
+		iWepType = ITEM_MELEE;
 
 	id = iID;
 	return iWepType;
 }
 
 // Is melee or weapon has NONE ID
-stock bool L4D2Wep_IsNoneAnyID(int id, int type)
+stock bool L4D2Wep_IsItemNoneID(int id, int type)
 {
-	return id == (type == WEPTYPE_WEP ? WEPID_NONE : MELEEID_NONE);
+	return id == (type == ITEM_WEP ? WEPID_NONE : MELEEID_NONE);
 }
 
-stock bool L4D2Wep_IsValidAnyID(int id, int type)
+stock bool L4D2Wep_IsValidItemID(int id, int type)
 {
-	return type == WEPTYPE_WEP ? L4D2Wep_IsValidID(id) : L4D2Wep_IsValidMeleeID(id);
+	return type == ITEM_WEP ? L4D2Wep_IsValidID(id) : L4D2Wep_IsValidMeleeID(id);
 }
 
-stock void L4DWep_GiveAnyByName(int client, char[] weaponName)
+stock void L4DWep_GiveItemByName(int client, char[] weaponName)
 {
 	CheatCommand(client, "give", weaponName);
 }
 
-stock void L4DWep_GiveAnyByID(int client, int id, int type)
+stock void L4DWep_GiveItemByID(int client, int id, int type)
 {
-	CheatCommand(client, "give", type == WEPTYPE_WEP ? L4D2Wep_GetNameByID(id) : L4D2Wep_GetMeleeNameByID(id));
+	CheatCommand(client, "give", type == ITEM_WEP ? L4D2Wep_GetNameByID(id) : L4D2Wep_GetMeleeNameByID(id));
 }
 
 stock static void CheatCommand(int client, char[] command, char[] args = "")
@@ -783,3 +783,123 @@ stock static void CheatCommand(int client, char[] command, char[] args = "")
 	FakeClientCommand(client, "%s %s", command, args);
 	SetCommandFlags(command, iFlags);
 }
+
+
+
+
+// Uses to set max ammo for weapon spawn feature. Supports only primary weapons + chainsaw
+enum ()
+{
+	AMMOID_NONE = -1,
+	AMMOID_ASHOTGUN,
+	AMMOID_CHAINSAW,
+	AMMOID_GL, // 2
+	AMMOID_HUNTING,
+	AMMOID_M60,
+	AMMOID_RIFLE, // 5
+	AMMOID_SHOTGUN,
+	AMMOID_SMG,
+	AMMOID_SNIPER, // 8
+	AMMOID_SIZE
+}
+
+static ConVar l_hCvarAmmo[AMMOID_SIZE];
+static int l_iCvarAmmo[AMMOID_SIZE];
+
+static const char l_sCvarAmmoNames[AMMOID_SIZE][L4DWEP_NAME_LEN] =
+{
+	"ammo_autoshotgun_max",
+	"ammo_chainsaw_max",
+	"ammo_grenadelauncher_max", // 2
+	"ammo_huntingrifle_max",
+	"ammo_m60_max",
+	"ammo_assaultrifle_max", // 5
+	"ammo_shotgun_max",
+	"ammo_smg_max",
+	"ammo_sniperrifle_max" // 8
+};
+
+/**
+ * Initializes internal structure necessary for AMMOID functions
+ * @remark It is recommended that you run this function on plugin start, but not necessary
+ *
+ * @noreturn
+ */
+stock void L4DWep_InitAmmoCvars()
+{
+	if (l_hCvarAmmo[0] == null){
+		for (int i; i < AMMOID_SIZE; i++)
+			InitAmmoCvar(i);
+	}
+}
+
+stock static void GetAmmoCvars()
+{
+	for (int i; i < AMMOID_SIZE; i++)
+		l_iCvarAmmo[i] = l_hCvarAmmo[i].IntValue;
+}
+
+// return AMMOID if wepID is supported, AMMOID_NONE otherwise (there no ammo convar for this weapon)
+stock int L4DWep_WepIDToAmmoID(int wepID)
+{
+	switch (wepID)
+	{
+		case WEPID_RIFLE, WEPID_RIFLE_DESERT, WEPID_RIFLE_AK47, WEPID_RIFLE_SG552:
+			return AMMOID_RIFLE;
+		case WEPID_PUMPSHOTGUN, WEPID_SHOTGUN_CHROME:
+			return AMMOID_SHOTGUN;
+		case WEPID_AUTOSHOTGUN, WEPID_SHOTGUN_SPAS:
+			return AMMOID_ASHOTGUN;
+		case WEPID_HUNTING_RIFLE:
+			return AMMOID_HUNTING;
+		case WEPID_SMG, WEPID_SMG_SILENCED, WEPID_SMG_MP5:
+			return AMMOID_SMG;
+		case WEPID_CHAINSAW:
+			return AMMOID_CHAINSAW;
+		case WEPID_GRENADE_LAUNCHER:
+			return AMMOID_GL;
+		case WEPID_RIFLE_M60:
+			return AMMOID_M60;
+		case WEPID_SNIPER_MILITARY, WEPID_SNIPER_AWP, WEPID_SNIPER_SCOUT:
+			return AMMOID_SNIPER;
+	}
+	return AMMOID_NONE;
+}
+
+// return max ammo from convar for ammoID
+stock int L4DWep_GetAmmo(int ammoID)
+{
+	if (l_hCvarAmmo[ammoID] == null)
+		InitAmmoCvar(ammoID);
+	return l_iCvarAmmo[ammoID];
+}
+
+// set max ammo to weapon entity by wepID
+stock bool L4DWep_SetAmmoByID(int entity, int wepID)
+{
+	if (HasEntProp(entity, Prop_Send, "m_iExtraPrimaryAmmo")){
+
+		int iAmmoID = L4DWep_WepIDToAmmoID(wepID);
+
+		if (iAmmoID != AMMOID_NONE){
+			SetEntProp(entity, Prop_Send, "m_iExtraPrimaryAmmo", L4DWep_GetAmmo(iAmmoID), 4);
+			return true;
+		}
+	}
+	return false;
+}
+
+stock static void InitAmmoCvar(int ammoID)
+{
+	l_hCvarAmmo[ammoID] = FindConVar(l_sCvarAmmoNames[ammoID]);
+	l_iCvarAmmo[ammoID] = l_hCvarAmmo[ammoID].IntValue;
+	l_hCvarAmmo[ammoID].AddChangeHook(L4DWep_ch_CvarAmmoChanged);
+}
+
+public void L4DWep_ch_CvarAmmoChanged(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+	if (!StrEqual(oldValue, newValue))
+		GetAmmoCvars();
+}
+
+

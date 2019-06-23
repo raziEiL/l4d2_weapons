@@ -24,7 +24,7 @@ public void OnPluginStart()
 	RegServerCmd("sm_l4d2wep_identify", CommandIdentify);
 	RegServerCmd("sm_l4d2wep_identify_melee", CommandIdentifyMelees);
 	// give a weapon/melee to payer
-	RegAdminCmd("sm_l4d2wep_give", CommandGiveAny, ADMFLAG_ROOT);
+	RegAdminCmd("sm_l4d2wep_give", CommandGiveItem, ADMFLAG_ROOT);
 }
 
 public void OnMapStart()
@@ -108,7 +108,7 @@ public Action CommandIdentifyMelees(int args)
 	}
 }
 
-public Action CommandGiveAny(int client, int args)
+public Action CommandGiveItem(int client, int args)
 {
 	if (client){
 
@@ -119,13 +119,13 @@ public Action CommandGiveAny(int client, int args)
 		if (args == 1){
 
 			int iID;
-			int iType = L4D2Wep_IdentifyAnyByName(sTemp, iID);
+			int iType = L4D2Wep_IdentifyItemByName(sTemp, iID);
 
-			if (iType == WEPTYPE_NONE || L4D2Wep_IsNoneAnyID(iID, iType) || !L4D2Wep_IsValidAnyID(iID, iType)){
+			if (iType == ITEM_NONE || L4D2Wep_IsItemNoneID(iID, iType) || !L4D2Wep_IsValidItemID(iID, iType)){
 				ReplyToCommand(client, "Unknown weapon name or bad ID!");
 				return Plugin_Handled;
 			}
-			L4DWep_GiveAnyByName(client, sTemp);
+			L4DWep_GiveItemByName(client, sTemp);
 		}
 		// give wep by id and type
 		else if (args == 2){
@@ -134,11 +134,11 @@ public Action CommandGiveAny(int client, int args)
 			GetCmdArg(2, sTemp, sizeof(sTemp));
 			int iType = StringToInt(sTemp);
 
-			if (iType == WEPTYPE_NONE || L4D2Wep_IsNoneAnyID(iID, iType) || !L4D2Wep_IsValidAnyID(iID, iType)){
+			if (iType == ITEM_NONE || L4D2Wep_IsItemNoneID(iID, iType) || !L4D2Wep_IsValidItemID(iID, iType)){
 				ReplyToCommand(client, "Unknown weapon name or bad ID!");
 				return Plugin_Handled;
 			}
-			L4DWep_GiveAnyByID(client, iID, iType);
+			L4DWep_GiveItemByID(client, iID, iType);
  		}
 		else
 			ReplyToCommand(client, "!give <weapName> | <ID> <TYPE>");
