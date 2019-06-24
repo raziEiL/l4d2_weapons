@@ -1,4 +1,4 @@
-#define PLUGIN_VERSION "1.0"
+#define PLUGIN_VERSION "1.1"
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -14,22 +14,28 @@ public Plugin myinfo =
 	url = "http://steamcommunity.com/id/raziEiL"
 }
 
+Handle g_hCmdSpawnTimer;
+int g_iCmdID;
+bool g_bIsSpawn;
+
 public void OnPluginStart()
 {
-	// weapon test
-	RegServerCmd("sm_l4d2wep", CommandWep);
-	// melee test
-	RegServerCmd("sm_l4d2wep_melee", CommandWepMelee);
-	// loop through entity to identify
-	RegServerCmd("sm_l4d2wep_identify", CommandIdentify);
-	RegServerCmd("sm_l4d2wep_identify_melee", CommandIdentifyMelees);
-	// give a weapon/melee to payer
-	RegAdminCmd("sm_l4d2wep_give", CommandGiveItem, ADMFLAG_ROOT);
+	RegServerCmd("sm_l4d2wep", CommandWep, "weapon structure test");
+	RegServerCmd("sm_l4d2wep_melee", CommandWepMelee, "melee structure test");
+	RegServerCmd("sm_l4d2wep_identify", CommandIdentify, "loop through entity to identify weapons");
+	RegServerCmd("sm_l4d2wep_identify_melee", CommandIdentifyMelees, "loop through entity to identify melees");
+	// Usages: <weapName> || <ID> <TYPE>
+	RegAdminCmd("sm_l4d2wep_give", CommandGiveItem, ADMFLAG_ROOT, "give a weapon/melee to payer");
+	// Usages: <weapName> || <ID> <TYPE>
+	RegAdminCmd("sm_l4d2wep_spawn", CommandSpawnItem, ADMFLAG_ROOT, "spawn a weapon/melee by player position");
+	// Usages: <IsSpawnClass> [SpawnMelees]
+	RegAdminCmd("sm_l4d2wep_spawn_all", CommandSpawnItems, ADMFLAG_ROOT, "spawn items with 0.5s interval");
 }
 
 public void OnMapStart()
 {
 	L4D2Wep_OnMapStart();
+	g_hCmdSpawnTimer = null;
 }
 
 public Action CommandWep(int args)
@@ -119,9 +125,9 @@ public Action CommandGiveItem(int client, int args)
 		if (args == 1){
 
 			int iID;
-			int iType = L4D2Wep_IdentifyItemByName(sTemp, iID);
+			ItemType Type = L4D2Wep_IdentifyItemByName(sTemp, iID);
 
-			if (iType == ITEM_NONE || L4D2Wep_IsItemNoneID(iID, iType) || !L4D2Wep_IsValidItemID(iID, iType)){
+			if (Type == ITEM_NONE || L4D2Wep_IsItemNoneID(iID, Type) || !L4D2Wep_IsValidItemID(iID, Type)){
 				ReplyToCommand(client, "Unknown weapon name or bad ID!");
 				return Plugin_Handled;
 			}
@@ -132,19 +138,125 @@ public Action CommandGiveItem(int client, int args)
 
 			int iID = StringToInt(sTemp);
 			GetCmdArg(2, sTemp, sizeof(sTemp));
-			int iType = StringToInt(sTemp);
+			ItemType Type = view_as<ItemType>(StringToInt(sTemp));
 
-			if (iType == ITEM_NONE || L4D2Wep_IsItemNoneID(iID, iType) || !L4D2Wep_IsValidItemID(iID, iType)){
+			if (Type == ITEM_NONE || L4D2Wep_IsItemNoneID(iID, Type) || !L4D2Wep_IsValidItemID(iID, Type)){
 				ReplyToCommand(client, "Unknown weapon name or bad ID!");
 				return Plugin_Handled;
 			}
-			L4DWep_GiveItemByID(client, iID, iType);
+			L4DWep_GiveItemByID(client, iID, Type);
  		}
 		else
-			ReplyToCommand(client, "!give <weapName> | <ID> <TYPE>");
+			ReplyToCommand(client, "Usages: <weapName> || <ID> <TYPE>");
 	}
 	else
 		ReplyToCommand(client, "Command is not available from server console!");
 
 	return Plugin_Handled;
+}
+
+public Action CommandSpawnItem(int client, int args)
+{
+	if (client){
+
+		char sTemp[L4DWEP_NAME_LEN];
+		GetCmdArg(1, sTemp, sizeof(sTemp));
+
+		if (args == 1 || args == 2){
+
+			int iID;
+			ItemType Type;
+			// spawn wep by name
+			if (args == 1){
+				Type = L4D2Wep_IdentifyItemByName(sTemp, iID);
+			}
+			// give wep by id and type
+			else if (args == 2){
+
+				iID = StringToInt(sTemp);
+				GetCmdArg(2, sTemp, sizeof(sTemp));
+				Type = view_as<ItemType>(StringToInt(sTemp));
+			}
+
+			if (Type == ITEM_NONE || L4D2Wep_IsItemNoneID(iID, Type) || !L4D2Wep_IsValidItemID(iID, Type)){
+				ReplyToCommand(client, "Unknown weapon name or bad ID!");
+				return Plugin_Handled;
+			}
+
+			float vOrigin[3];
+			GetClientAbsOrigin(client, vOrigin);
+			int iEnt = L4D2Wep_SpawnItem(iID, Type, vOrigin);
+
+			if (iEnt == -1)
+				ReplyToCommand(client, "Failed to spawn ID %d, ItemType %d, ent %d", iID, Type, iEnt);
+		}
+		else
+			ReplyToCommand(client, "Usages: <weapName> || <ID> <TYPE>");
+	}
+	else
+		ReplyToCommand(client, "Command is not available from server console!");
+
+	return Plugin_Handled;
+}
+
+public Action CommandSpawnItems(int client, int args)
+{
+	if (client){
+
+		if (g_hCmdSpawnTimer){
+			CloseHandle(g_hCmdSpawnTimer);
+			g_hCmdSpawnTimer = null;
+			ReplyToCommand(client, "Canceled!");
+			return Plugin_Handled;
+		}
+		if (args){
+
+			char sTemp[2];
+			GetCmdArg(1, sTemp, sizeof(sTemp));
+			g_bIsSpawn = view_as<bool>(StringToInt(sTemp));
+
+			if (args == 1){
+				g_iCmdID = WEPID_PISTOL;
+				g_hCmdSpawnTimer = CreateTimer(0.5, WP_t_SpawnWep, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE|TIMER_REPEAT);
+			}
+			else {
+				g_iCmdID = MELEEID_FIREAXE;
+				g_hCmdSpawnTimer = CreateTimer(0.5, WC_t_SpawnMelees, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE|TIMER_REPEAT);
+			}
+			ReplyToCommand(client, "Spawn weapons with 0.5s. interval");
+		}
+		else
+			ReplyToCommand(client, "Usages: <IsSpawnClass> [SpawnMelees]");
+	}
+	return Plugin_Handled;
+}
+
+public Action WP_t_SpawnWep(Handle timer, any client)
+{
+	client = GetClientOfUserId(client);
+	if (!client || g_iCmdID >= WEPID_TANK_CLAW){
+		g_hCmdSpawnTimer = null;
+		ReplyToCommand(client, "Weapons has been spawned!");
+		return Plugin_Stop;
+	}
+
+	float vOrigin[3];
+	GetClientAbsOrigin(client, vOrigin);
+	L4D2Wep_Spawn(g_iCmdID++, vOrigin, _, _, g_bIsSpawn);
+	return Plugin_Continue;
+}
+
+public Action WC_t_SpawnMelees(Handle timer, any client)
+{
+	client = GetClientOfUserId(client);
+	if (!client || g_iCmdID >= MELEEID_SIZE){
+		g_hCmdSpawnTimer = null;
+		ReplyToCommand(client, "Melees has been spawned!");
+		return Plugin_Stop;
+	}
+
+	float vOrigin[3];
+	GetClientAbsOrigin(client, vOrigin);
+	L4D2Wep_SpawnMelee(g_iCmdID++, vOrigin, _, _, g_bIsSpawn);
+	return Plugin_Continue;
 }

@@ -6,6 +6,7 @@
  * GitHub: https://github.com/raziEiL/l4d2_weapons
  *
  * l4d2_weapons (C)2019 raziEiL [disawar1] <mr.raz4291@gmail.com>
+ * Forked from MatthewClair/sourcemod-plugins
  * SourceMod (C)2004-2008 AlliedModders LLC.  All rights reserved.
  * =============================================================================
  *
@@ -41,11 +42,15 @@
 
 #define L4DWEP_NAME_LEN 64
 
-// ------------------------------WEAPON FUNCTION------------------------------------
-
-// Weapon ID enumerations.
-// These values are *NOT* arbitrary!
-// They are used in game as the weaponid for weapon_spawn entities
+/*
+|==========================================================================
+| WEAPON STRUCTURE
+|==========================================================================
+|
+| WEPID enumerations are *NOT* arbitrary!
+| They are used in game as the weaponid for weapon_spawn entities.
+|
+*/
 enum ()
 {
 	WEPID_NONE,             // 0
@@ -107,6 +112,13 @@ enum ()
 	WEPID_SIZE
 };
 
+/*
+|--------------------------------------------------------------------------
+| WEAPON PRIVATE STRUCTURE
+|--------------------------------------------------------------------------
+*/
+
+// check for _spawn class
 static const bool l_bHasSpawnClass[WEPID_SIZE] =
 {
 	false, true, true,		// 0
@@ -127,7 +139,7 @@ static const bool l_bHasSpawnClass[WEPID_SIZE] =
 	false, false, false,	// 45
 	false, false, false,	// 48
 	false, false, false,	// 51
-	false, false			// 54
+	true, false			// 54
 };
 
 // Weapon names for each of the weapons, used in identification.
@@ -151,10 +163,10 @@ static const char l_sWeaponNames[WEPID_SIZE][L4DWEP_NAME_LEN] =
 	"weapon_machinegun", "vomit", "splat",                                                   // 45
 	"pounce", "lounge", "pull",                                                              // 48
 	"choke", "rock", "physics",                                                              // 51
-	"ammo", "upgrade_item"                                                                   // 54
+	"weapon_ammo", "upgrade_item"                                                             // 54
 };
 
-// World Weapon models for each of the weapons. Useful for making new weapon spawns
+// World Weapon models for each of the weapons. Used for making new weapon spawns.
 // Some models are left blank because no single model can be given, the model is known or none exist.
 static const char l_sWeaponModels[WEPID_SIZE][PLATFORM_MAX_PATH] =
 {
@@ -212,7 +224,7 @@ static const char l_sWeaponModels[WEPID_SIZE][PLATFORM_MAX_PATH] =
 	"",
 	"",
 	"",
-	"",
+	"models/props/terror/ammo_stack.mdl",
 	""
 };
 
@@ -278,6 +290,19 @@ static const int l_iWeaponSlots[WEPID_SIZE] =
 
 static StringMap l_mWeaponNames;
 
+stock static void InitNamesMap()
+{
+	l_mWeaponNames = new StringMap();
+	for (int i; i < WEPID_SIZE; i++)
+		l_mWeaponNames.SetValue(l_sWeaponNames[i], i);
+}
+
+/*
+|--------------------------------------------------------------------------
+| WEAPON PUBLIC STRUCTURE
+|--------------------------------------------------------------------------
+*/
+
 /**
  * Initializes internal structure necessary for l4d2_weapons.inc functions
  * @remark It is recommended that you run this function on plugin start, but not necessary
@@ -287,35 +312,40 @@ static StringMap l_mWeaponNames;
 stock void L4D2Wep_Init()
 {
 	if (l_mWeaponNames == null)
-	{
 		InitNamesMap();
-	}
 }
 
-stock static void InitNamesMap()
-{
-	l_mWeaponNames = new StringMap();
-	for (int i; i < WEPID_SIZE; i++)
-	{
-		l_mWeaponNames.SetValue(l_sWeaponNames[i], i);
-	}
-}
-
+/**
+ * @param wepID		WEPID to get string for
+ * @return 			Weapon name identificator string
+ */
 stock char[] L4D2Wep_GetNameByID(int wepID)
 {
 	return l_sWeaponNames[wepID];
 }
 
+/**
+ * @param wepID		WEPID to check spawn class for
+ * @return			True if a weapon has spawn class, false otherwise.
+ */
 stock bool L4D2Wep_HasSpawnClass(int wepID)
 {
 	return l_bHasSpawnClass[wepID];
 }
 
+/**
+ * @param wepID		WEPID to get string for
+ * @return 			Weapon model string
+ */
 stock char[] L4D2Wep_GetModelByID(int wepID)
 {
 	return l_sWeaponModels[wepID];
 }
 
+/**
+ * @param wepID		WEPID to get slot for
+ * @return 			Slot index, -1 if no slot existed
+ */
 stock int L4D2Wep_GetSlotByID(int wepID)
 {
 	return l_iWeaponSlots[wepID];
@@ -323,7 +353,7 @@ stock int L4D2Wep_GetSlotByID(int wepID)
 
 /**
  * Performs bounds checking to determine if a WEPID is valid
- * @remark Simple check to see if wepID has a garbage value
+ * @remark Simple check to see if wepID has a garbage value. WEPID_NONE will return true!
  *
  * @param wepID		WEPID to check for validity
  * @return True if wepID is valid, false otherwise.
@@ -349,19 +379,15 @@ stock bool L4D2Wep_HasValidModel(int wepID)
  * Tries to look up a WEPID for a given Weapon Name.
  *
  * @param weaponName	Weapon name string to look up Id from
- * @return				The corresponding WeaponId if found, else WEPID_NONE
+ * @return				The corresponding WEPID if found, else WEPID_NONE
  */
 stock int L4D2Wep_NameToID(char[] weaponName)
 {
 	if (l_mWeaponNames == null)
-	{
 		InitNamesMap();
-	}
-	int iID;
-	if (l_mWeaponNames.GetValue(weaponName, iID))
-	{
-		return iID;
-	}
+	int iWepID;
+	if (l_mWeaponNames.GetValue(weaponName, iWepID))
+		return iWepID;
 	return WEPID_NONE;
 }
 
@@ -400,89 +426,30 @@ stock int L4D2Wep_Identify(int entity)
 	return L4D2Wep_NameToIDEx(sClass);
 }
 
-// returns an entity of the new weapon spawn on success
-// -1 on failure or removal
-/**
- * Attempts to convert a weapon spawn entity to a given weapon spawn
- * @remark Truthfully, this will work on any entity with origin/rotation.
- *		Also, requires the weapon to either have a Valid weapon model or have one provided
- *
- * @param entity		Index of entity to convert to weapon spawn
- * @param wepID			ID of the weapon to have the spawner hold
- * @param count			Weapon count for the spawner (default 5)
- * @param model			World model to use for the weapon spawn
- * @return entity of the new weapon spawn, or -1 on errors.
- */
-stock int L4D2Wep_ConvertWeaponSpawn(int entity, int wepID, int count = 5, const char[] model = "")
-{
-	if(!IsValidEntity(entity)) return -1;
-	if(!IsValidWeaponId(wepID)) return -1;
-	if(model[0] == '\0' && !L4D2Wep_HasValidModel(wepID)) return -1;
-
-
-	float origins[3], angles[3];
-	GetEntPropVector(entity, Prop_Send, "m_vecOrigin", origins);
-	GetEntPropVector(entity, Prop_Send, "m_angRotation", angles);
-
-	AcceptEntityInput(entity, "kill");
-
-	entity = CreateEntityByName("weapon_spawn");
-	if(!IsValidEntity(entity)) return -1;
-
-	SetEntProp(entity, Prop_Send, "m_weaponID", wepID);
-
-	if(model[0] == '\0')
-	{
-		if(!IsModelPrecached(model))
-		{
-			if(PrecacheModel(model) <= 0)
-			{
-				return -1;
-			}
-		}
-
-		SetEntityModel(entity, model);
-	}
-	else
-	{
-		if(!IsModelPrecached(l_sWeaponModels[wepID]))
-		{
-			if(PrecacheModel(l_sWeaponModels[wepID]) <= 0)
-			{
-				return -1;
-			}
-		}
-
-		SetEntityModel(entity, l_sWeaponModels[wepID]);
-	}
-	char sCount[64];
-	IntToString(count, sCount, sizeof(sCount));
-	DispatchKeyValue(entity, "count", sCount);
-
-	TeleportEntity(entity, origins, angles, NULL_VECTOR);
-	DispatchSpawn(entity);
-	SetEntityMoveType(entity,MOVETYPE_NONE);
-	return entity;
-}
-
-// Precache weapon world models (only for valid mdl)
+// Precache a weapon world models (only for valid mdl)
 stock void L4D2Wep_PrecacheModels()
 {
-	for(int i = WEPID_PISTOL; i < WEPID_TANK_CLAW; i++)
+	for (int i = WEPID_PISTOL; i < WEPID_SIZE; i++)
 	{
-		if (L4D2Wep_HasValidModel(i) && !IsModelPrecached(l_sWeaponModels[i]))
+		if (l_sWeaponModels[i][0] && !IsModelPrecached(l_sWeaponModels[i]))
 			PrecacheModel(l_sWeaponModels[i], true);
 	}
 }
 
-// Suffix helpers. Do this: "weapon_rifle" -> "weapon_rifle_spawn"
+/*
+|--------------------------------------------------------------------------
+| WEAPON HELPERS
+|--------------------------------------------------------------------------
+*/
+
+// Suffix helper. Converts "weapon_rifle" to "weapon_rifle_spawn"
 stock void L4D2Wep_AddSpawnSuffix(char[] weaponName, char[] store, int len)
 {
 	if (!L4D2Wep_HasSpawnSuffix(weaponName))
 		Format(store, len, "%s_spawn", weaponName);
 }
 
-// Do this: "weapon_rifle_spawn" -> "weapon_rifle"
+// Suffix helper. Converts "weapon_rifle_spawn" to "weapon_rifle"
 stock void L4D2Wep_RemoveSpawnSuffix(char[] weaponName, int Len = 0)
 {
 	if (Len)
@@ -494,7 +461,7 @@ stock void L4D2Wep_RemoveSpawnSuffix(char[] weaponName, int Len = 0)
 	}
 }
 
-// Check for "_spawn" suffix
+// Suffix helper. Check for a "_spawn" suffix
 stock int L4D2Wep_HasSpawnSuffix(char[] weaponName)
 {
 	int len = strlen(weaponName);
@@ -503,8 +470,14 @@ stock int L4D2Wep_HasSpawnSuffix(char[] weaponName)
 	return 0;
 }
 
-// ------------------------------MELEE FUNCTION------------------------------------
-
+/*
+|==========================================================================
+| MELEE STRUCTURE
+|==========================================================================
+|
+| MELEEID enumerations are arbitrary.
+|
+*/
 enum ()
 {
 	MELEEID_NONE = -1,
@@ -528,6 +501,13 @@ enum ()
 	MELEEID_SIZE
 }
 
+/*
+|--------------------------------------------------------------------------
+| MELEE PRIVATE STRUCTURE
+|--------------------------------------------------------------------------
+*/
+
+// Melee names for each of the melee, used in identification/game
 static const char l_sMeleeNames[MELEEID_SIZE][L4DWEP_NAME_LEN] =
 {
 	"fireaxe",
@@ -548,6 +528,7 @@ static const char l_sMeleeNames[MELEEID_SIZE][L4DWEP_NAME_LEN] =
 	"sledgehammer"
 };
 
+// World Melee models for each of the melee. Used for making new melee spawns.
 static const char l_sMeleeModels[MELEEID_SIZE][PLATFORM_MAX_PATH] =
 {
 	"models/weapons/melee/w_fireaxe.mdl",
@@ -569,6 +550,21 @@ static const char l_sMeleeModels[MELEEID_SIZE][PLATFORM_MAX_PATH] =
 };
 
 static StringMap l_mMeleeNames;
+static char l_sAvailableMelee[MELEEID_SIZE][L4DWEP_NAME_LEN];
+static int l_iAvailableMeleeCount;
+
+stock static void InitMeleeNamesMap()
+{
+	l_mMeleeNames = new StringMap();
+	for (int i; i < MELEEID_SIZE; i++)
+		l_mMeleeNames.SetValue(l_sMeleeNames[i], i);
+}
+
+/*
+|--------------------------------------------------------------------------
+| MELEE PUBLIC STRUCTURE
+|--------------------------------------------------------------------------
+*/
 
 /**
  * Initializes internal structure necessary for weapons.inc functions
@@ -579,25 +575,22 @@ static StringMap l_mMeleeNames;
 stock void L4D2Wep_InitMelees()
 {
 	if (l_mMeleeNames == null)
-	{
 		InitMeleeNamesMap();
-	}
 }
 
-stock static void InitMeleeNamesMap()
-{
-	l_mMeleeNames = new StringMap();
-	for (int i; i < MELEEID_SIZE; i++)
-	{
-		l_mMeleeNames.SetValue(l_sMeleeNames[i], i);
-	}
-}
-
+/**
+ * @param meleepID	MELEEID to get string for
+ * @return 			Melee name identificator string
+ */
 stock char L4D2Wep_GetMeleeNameByID(int meleepID)
 {
 	return l_sMeleeNames[meleepID];
 }
 
+/**
+ * @param meleepID	WEPID to get string for
+ * @return 			Melee model string
+ */
 stock char L4D2Wep_GetMeleeModelByID(int meleepID)
 {
 	return l_sMeleeModels[meleepID];
@@ -619,19 +612,15 @@ stock bool L4D2Wep_IsValidMeleeID(int meleeID)
  * Tries to look up a MELEEID for a given Melee Name.
  *
  * @param meleeName 	Melee name string to look up Id from
- * @return				The corresponding MELEEID if found, else MELEEID_NONE
+ * @return				The corresponding MELEEID if found, MELEEID_NONE otherwise
  */
 stock int L4D2Wep_MeleeNameToID(char[] meleeName)
 {
 	if (l_mMeleeNames == null)
-	{
 		InitMeleeNamesMap();
-	}
-	int iID;
-	if (l_mMeleeNames.GetValue(meleeName, iID))
-	{
-		return iID;
-	}
+	int iMeleeID;
+	if (l_mMeleeNames.GetValue(meleeName, iMeleeID))
+		return iMeleeID;
 	return MELEEID_NONE;
 }
 
@@ -655,12 +644,10 @@ stock int L4D2Wep_IdentifyMelee(int entity, bool spawn = false)
 	return L4D2Wep_MeleeNameToID(sMelee);
 }
 
-static char l_sAvailableMelee[MELEEID_SIZE][L4DWEP_NAME_LEN];
-static int l_iAvailableMeleeCount;
-
 /**
- * Initializes/updates internal structure necessary for L4D2Wep_IsValidMelee function
- * @remark It NECESSARY to RUN this function OnMapStart()!
+ * Initializes/updates internal structure necessary for L4D2Wep_IsValidMelee() function
+ * @remark Method to detect valid melees via string table (Thanks @Electr0)
+ * @remark IT NECESSARY TO RUN THIS FUNCTION OnMapStart()!
  *
  * @noreturn
  */
@@ -678,104 +665,122 @@ stock void L4D2Wep_OnMapStart()
     }
 }
 
-// Check if melee is available on current map
+/**
+ * Performs melee checking to determine if a melee is available on current map
+ * @remark Method to detect valid melees via string table (Thanks @Electr0)
+ *
+ * @param meleeName		Melee Name string to check for validity
+ * @return True if melee is valid, false otherwise.
+ */
 stock bool L4D2Wep_IsValidMelee(char[] meleeName)
 {
 	for (int i; i < l_iAvailableMeleeCount; i++)
 	{
 		if (StrEqual(meleeName, l_sAvailableMelee[i], false))
-		{
 			return true;
-		}
 	}
 
 	return false;
 }
 
 // Precache melee world models. Probably for debugging purpose only.
+// If melee is available on current map (see L4D2Wep_IsValidMelee()) there no sense to precache models.
 stock void L4D2Wep_PrecacheMeleeModels()
 {
-	for(int i = MELEEID_FIREAXE; i < MELEEID_SIZE; i++)
+	for (int i = MELEEID_FIREAXE; i < MELEEID_SIZE; i++)
 	{
 		if (!IsModelPrecached(l_sMeleeModels[i]))
 			PrecacheModel(l_sMeleeModels[i], true);
 	}
 }
 
-// ------------------------------WEAPON AND MELEE FUNCTION------------------------------------
+/*
+|==========================================================================
+| ITEM STRUCTURE
+|==========================================================================
+|
+| Since the l4d2_weapons structure was divided into two types WEAPON and MELEE,
+| item structure used to identify them.
+| Also this structure make the code shorter.
+|
+*/
 
-enum ()
+enum ItemType
 {
 	ITEM_NONE = -1,
 	ITEM_WEP,
 	ITEM_MELEE
 }
 
-// Identifies a entity as WEPTYPE
-stock int L4D2Wep_IdentifyItemByEnt(int entity, int &id = 0)
+// Identifies a entity as ItemType
+stock ItemType L4D2Wep_IdentifyItemByEnt(int entity, int &anyID = 0)
 {
 	int iID = L4D2Wep_IdentifyMelee(entity);
-	int iWepType;
+	ItemType Type;
 
 	if (iID == MELEEID_NONE){
 
 		iID = L4D2Wep_Identify(entity);
 
 		if (iID == WEPID_NONE)
-			iWepType = ITEM_NONE;
+			Type = ITEM_NONE;
 		else
-			iWepType = ITEM_WEP;
+			Type = ITEM_WEP;
 	}
 	else
-		iWepType = ITEM_MELEE;
+		Type = ITEM_MELEE;
 
-	id = iID;
-	return iWepType;
+	anyID = iID;
+	return Type;
 }
 
-// Identifies a string name as WEPTYPE
-stock int L4D2Wep_IdentifyItemByName(char[] name, int &id = 0)
+// Identifies a string name as ItemType
+stock ItemType L4D2Wep_IdentifyItemByName(char[] anyName, int &anyID = 0)
 {
-	int iID = L4D2Wep_MeleeNameToID(name);
-	int iWepType;
+	int iID = L4D2Wep_MeleeNameToID(anyName);
+	ItemType Type;
 
 	if (iID == MELEEID_NONE){
 
-		iID = L4D2Wep_NameToIDEx(name);
+		iID = L4D2Wep_NameToIDEx(anyName);
 
 		if (iID == WEPID_NONE)
-			iWepType = ITEM_NONE;
+			Type = ITEM_NONE;
 		else
-			iWepType = ITEM_WEP;
+			Type = ITEM_WEP;
 	}
 	else
-		iWepType = ITEM_MELEE;
+		Type = ITEM_MELEE;
 
-	id = iID;
-	return iWepType;
+	anyID = iID;
+	return Type;
 }
 
-// Is melee or weapon has NONE ID
-stock bool L4D2Wep_IsItemNoneID(int id, int type)
+stock bool L4D2Wep_IsItemNoneID(int anyID, ItemType type)
 {
-	return id == (type == ITEM_WEP ? WEPID_NONE : MELEEID_NONE);
+	return anyID == (type == ITEM_WEP ? WEPID_NONE : MELEEID_NONE);
 }
 
-stock bool L4D2Wep_IsValidItemID(int id, int type)
+stock bool L4D2Wep_IsValidItemID(int anyID, ItemType type)
 {
-	return type == ITEM_WEP ? L4D2Wep_IsValidID(id) : L4D2Wep_IsValidMeleeID(id);
+	return type == ITEM_WEP ? L4D2Wep_IsValidID(anyID) : L4D2Wep_IsValidMeleeID(anyID);
 }
 
+// Uses cheat command to give an item to player.
 stock void L4DWep_GiveItemByName(int client, char[] weaponName)
 {
-	CheatCommand(client, "give", weaponName);
+	CheatCommand(client, "give", StrEqual(weaponName, l_sWeaponNames[WEPID_AMMO]) ? "ammo" : weaponName);
 }
 
-stock void L4DWep_GiveItemByID(int client, int id, int type)
+stock void L4DWep_GiveItemByID(int client, int anyID, ItemType type)
 {
-	CheatCommand(client, "give", type == ITEM_WEP ? L4D2Wep_GetNameByID(id) : L4D2Wep_GetMeleeNameByID(id));
+	CheatCommand(client, "give", type == ITEM_WEP ? (anyID == WEPID_AMMO ? "ammo" : l_sWeaponNames[anyID]) : l_sMeleeNames[anyID]);
 }
-
+/*
+|--------------------------------------------------------------------------
+| ITEM PRIVATE STRUCTURE
+|--------------------------------------------------------------------------
+*/
 stock static void CheatCommand(int client, char[] command, char[] args = "")
 {
 	int iFlags = GetCommandFlags(command);
@@ -784,11 +789,18 @@ stock static void CheatCommand(int client, char[] command, char[] args = "")
 	SetCommandFlags(command, iFlags);
 }
 
+/*
+|==========================================================================
+| AMMO HELPER STRUCTURE
+|==========================================================================
+|
+| Used to detect and set max ammo for WEAPON SPAWN FEATURE.
+| Simply based on game convars.
+|
+*/
 
-
-
-// Uses to set max ammo for weapon spawn feature. Supports only primary weapons + chainsaw
-enum ()
+// Supports only primary weapons + chainsaw
+enum AmmoID
 {
 	AMMOID_NONE = -1,
 	AMMOID_ASHOTGUN,
@@ -799,14 +811,17 @@ enum ()
 	AMMOID_RIFLE, // 5
 	AMMOID_SHOTGUN,
 	AMMOID_SMG,
-	AMMOID_SNIPER, // 8
-	AMMOID_SIZE
+	AMMOID_SNIPER // 8
 }
+/*
+|--------------------------------------------------------------------------
+| AMMO HELPER PRIVATE STRUCTURE
+|--------------------------------------------------------------------------
+*/
+static ConVar l_hCvarAmmo[AmmoID];
+static int l_iCvarAmmo[AmmoID];
 
-static ConVar l_hCvarAmmo[AMMOID_SIZE];
-static int l_iCvarAmmo[AMMOID_SIZE];
-
-static const char l_sCvarAmmoNames[AMMOID_SIZE][L4DWEP_NAME_LEN] =
+static const char l_sCvarAmmoNames[AmmoID][L4DWEP_NAME_LEN] =
 {
 	"ammo_autoshotgun_max",
 	"ammo_chainsaw_max",
@@ -819,6 +834,25 @@ static const char l_sCvarAmmoNames[AMMOID_SIZE][L4DWEP_NAME_LEN] =
 	"ammo_sniperrifle_max" // 8
 };
 
+stock static void GetAmmoCvars()
+{
+	for (AmmoID i; i < AmmoID; i++)
+		l_iCvarAmmo[i] = l_hCvarAmmo[i].IntValue;
+}
+
+stock static void InitAmmoCvar(AmmoID ammoID)
+{
+	l_hCvarAmmo[ammoID] = FindConVar(l_sCvarAmmoNames[ammoID]);
+	l_iCvarAmmo[ammoID] = l_hCvarAmmo[ammoID].IntValue;
+	l_hCvarAmmo[ammoID].AddChangeHook(L4DWep_ch_CvarAmmoChanged);
+}
+
+/*
+|--------------------------------------------------------------------------
+| AMMO HELPER PUBLIC STRUCTURE
+|--------------------------------------------------------------------------
+*/
+
 /**
  * Initializes internal structure necessary for AMMOID functions
  * @remark It is recommended that you run this function on plugin start, but not necessary
@@ -828,19 +862,13 @@ static const char l_sCvarAmmoNames[AMMOID_SIZE][L4DWEP_NAME_LEN] =
 stock void L4DWep_InitAmmoCvars()
 {
 	if (l_hCvarAmmo[0] == null){
-		for (int i; i < AMMOID_SIZE; i++)
+		for (AmmoID i; i < AmmoID; i++)
 			InitAmmoCvar(i);
 	}
 }
 
-stock static void GetAmmoCvars()
-{
-	for (int i; i < AMMOID_SIZE; i++)
-		l_iCvarAmmo[i] = l_hCvarAmmo[i].IntValue;
-}
-
-// return AMMOID if wepID is supported, AMMOID_NONE otherwise (there no ammo convar for this weapon)
-stock int L4DWep_WepIDToAmmoID(int wepID)
+// @return AmmoID if wepID is supported, AMMOID_NONE otherwise (there no ammo convar for this weapon)
+stock AmmoID L4DWep_WepIDToAmmoID(int wepID)
 {
 	switch (wepID)
 	{
@@ -866,8 +894,8 @@ stock int L4DWep_WepIDToAmmoID(int wepID)
 	return AMMOID_NONE;
 }
 
-// return max ammo from convar for ammoID
-stock int L4DWep_GetAmmo(int ammoID)
+// @return max ammo from convar for ammoID
+stock int L4DWep_GetAmmo(AmmoID ammoID)
 {
 	if (l_hCvarAmmo[ammoID] == null)
 		InitAmmoCvar(ammoID);
@@ -879,21 +907,14 @@ stock bool L4DWep_SetAmmoByID(int entity, int wepID)
 {
 	if (HasEntProp(entity, Prop_Send, "m_iExtraPrimaryAmmo")){
 
-		int iAmmoID = L4DWep_WepIDToAmmoID(wepID);
+		AmmoID Ammo = L4DWep_WepIDToAmmoID(wepID);
 
-		if (iAmmoID != AMMOID_NONE){
-			SetEntProp(entity, Prop_Send, "m_iExtraPrimaryAmmo", L4DWep_GetAmmo(iAmmoID), 4);
+		if (Ammo != AMMOID_NONE){
+			SetEntProp(entity, Prop_Send, "m_iExtraPrimaryAmmo", L4DWep_GetAmmo(Ammo), 4);
 			return true;
 		}
 	}
 	return false;
-}
-
-stock static void InitAmmoCvar(int ammoID)
-{
-	l_hCvarAmmo[ammoID] = FindConVar(l_sCvarAmmoNames[ammoID]);
-	l_iCvarAmmo[ammoID] = l_hCvarAmmo[ammoID].IntValue;
-	l_hCvarAmmo[ammoID].AddChangeHook(L4DWep_ch_CvarAmmoChanged);
 }
 
 public void L4DWep_ch_CvarAmmoChanged(ConVar convar, const char[] oldValue, const char[] newValue)
@@ -902,4 +923,239 @@ public void L4DWep_ch_CvarAmmoChanged(ConVar convar, const char[] oldValue, cons
 		GetAmmoCvars();
 }
 
+/*
+|==========================================================================
+| WEAPON SPAWN FEATURE
+|==========================================================================
+|
+| Functions to create weapon_, melee_ or _spawn class entities.
+|
+*/
 
+/**
+ * Spawn a weapon or melee entity.
+ *
+ * @param anyID			WEPID or MELEEID
+ * @param ItemType		ItemType
+ * @param origin		Entity origin
+ * @param angles		Entity angles
+ * @param applyVecFix	Fixes a weapon origin and angles to make it look better.
+ * @param spawn			True to create a weapon_..._spawn class if it possible, otherwise a weapon_... class will be created.
+ * @param count			Max number of weapons given before disappearing (<= 0 infinity). Use it with spawn = true only.
+ * @return Entity index on success, or -1 on failure
+ */
+stock int L4D2Wep_SpawnItem(int anyID, ItemType type, float origin[3], float angles[3] = {0.0, ...}, bool applyVecFix = true, bool spawn = true, int count = 5)
+{
+	switch (type)
+	{
+		case ITEM_WEP:
+			return L4D2Wep_Spawn(anyID, origin, angles, applyVecFix, spawn, count);
+		case ITEM_MELEE:
+			return L4D2Wep_SpawnMelee(anyID, origin, angles, applyVecFix, spawn, count);
+	}
+	return -1;
+}
+
+/**
+ * Spawn a weapon entity.
+ *
+ * @param wepID			WEPID
+ * @param origin		Entity origin
+ * @param angles		Entity angles
+ * @param applyVecFix	Fixes a weapon origin and angles to make it look better. True to call L4D2Wep_SpawnVectorFix()
+ * @param spawn			True to create a weapon_..._spawn class if it possible, otherwise a weapon_... class will be created.
+ * @param count			Max number of weapons given before disappearing (<= 0 infinity). Use it with spawn = true only.
+ * @return Entity index on success, or -1 on failure
+ */
+stock int L4D2Wep_Spawn(int wepID, float origin[3], float angles[3] = {0.0, ...}, bool applyVecFix = true, bool spawn = true, int count = 5)
+{
+	if (l_sWeaponModels[wepID][0]){
+
+		if (!IsModelPrecached(l_sWeaponModels[wepID]) && PrecacheModel(l_sWeaponModels[wepID]) <= 0)
+			return -1;
+
+		int iEnt;
+		bool IsSpawn;
+		char sTemp[L4DWEP_NAME_LEN];
+
+		if (spawn && l_bHasSpawnClass[wepID]){
+
+			sTemp = l_sWeaponNames[wepID];
+			L4D2Wep_AddSpawnSuffix(sTemp, sTemp, sizeof(sTemp));
+			iEnt = CreateEntityByName(sTemp);
+			IsSpawn = true;
+		}
+		else
+			iEnt = CreateEntityByName(l_sWeaponNames[wepID]);
+
+		if (iEnt != -1){
+
+			if (IsSpawn){
+
+				if (count >= 1){
+					IntToString(count, sTemp, sizeof(sTemp));
+					DispatchKeyValue(iEnt, "count", sTemp);
+				}
+				else {
+					DispatchKeyValue(iEnt, "count", "9999");
+					DispatchKeyValue(iEnt, "spawnflags", "8");
+				}
+			}
+
+			if (applyVecFix)
+				L4D2Wep_FixModelVectors(wepID, origin, angles);
+
+			DispatchKeyValue(iEnt, "solid", "6");
+			DispatchKeyValue(iEnt, "rendermode", "3");
+			DispatchKeyValue(iEnt, "model", l_sWeaponModels[wepID]);
+			DispatchKeyValueVector(iEnt, "origin", origin);
+			DispatchKeyValueVector(iEnt, "angles", angles);
+			DispatchSpawn(iEnt);
+			SetEntityMoveType(iEnt, MOVETYPE_NONE);
+
+			if (!IsSpawn)
+				L4DWep_SetAmmoByID(iEnt, wepID);
+		}
+		return iEnt;
+	}
+	else
+		LogError("Wep ID %d has invalid model!", wepID);
+	return -1;
+}
+
+/**
+ * Spawn a valid melee (see L4D2Wep_IsValidMelee) entity.
+ *
+ * @param meleeID		MELEEID
+ * @param origin		Entity origin
+ * @param angles		Entity angles
+ * @param applyVecFix	Fixes a melee origin and angles to make it look better. True to call L4D2Wep_FixMeleeModelVectors()
+ * @param spawn			True to create a melee_..._spawn class, otherwise a melee_... class will be created.
+ * @param count			Max number of melees given before disappearing (<= 0 infinity). Use it with spawn = true only.
+ * @return Entity index on success, or -1 on failure
+ */
+stock int L4D2Wep_SpawnMelee(int meleeID, float origin[3], float angles[3] = {0.0, ...}, bool applyVecFix = true, bool spawn = true, int count = 5)
+{
+	if (L4D2Wep_IsValidMelee(l_sMeleeNames[meleeID])){
+
+		int iEnt;
+		char sTemp[L4DWEP_NAME_LEN];
+
+		if (spawn){
+
+			sTemp = l_sWeaponNames[WEPID_MELEE];
+			L4D2Wep_AddSpawnSuffix(sTemp, sTemp, sizeof(sTemp));
+			iEnt = CreateEntityByName(sTemp);
+		}
+		else
+			iEnt = CreateEntityByName(l_sWeaponNames[WEPID_MELEE]);
+
+		if (iEnt != -1){
+
+			if (spawn){
+
+				if (count >= 1){
+					IntToString(count, sTemp, sizeof(sTemp));
+					DispatchKeyValue(iEnt, "count", sTemp);
+				}
+				else {
+					DispatchKeyValue(iEnt, "count", "9999");
+					DispatchKeyValue(iEnt, "spawnflags", "8");
+				}
+				DispatchKeyValue(iEnt, "melee_weapon", l_sMeleeNames[meleeID]);
+			}
+			else
+				DispatchKeyValue(iEnt, "melee_script_name", l_sMeleeNames[meleeID]);
+
+			if (applyVecFix)
+				L4D2Wep_FixMeleeModelVectors(meleeID, origin, angles);
+
+			DispatchKeyValue(iEnt, "solid", "6");
+			DispatchKeyValue(iEnt, "rendermode", "3");
+			DispatchKeyValue(iEnt, "model", l_sMeleeModels[meleeID]);
+			DispatchKeyValueVector(iEnt, "origin", origin);
+			DispatchKeyValueVector(iEnt, "angles", angles);
+			DispatchSpawn(iEnt);
+			SetEntityMoveType(iEnt, MOVETYPE_NONE);
+		}
+		return iEnt;
+	}
+	else
+		LogError("Melee ID %d has not available on map!", meleeID);
+	return -1;
+}
+
+/**
+ * Attempts to convert a weapon spawn entity to a given weapon spawn
+ * @remark Truthfully, this will work on any entity with origin/rotation.
+ *		Also, requires the weapon to either have a Valid weapon model or have one provided
+ *
+ * @param entity		Index of entity to convert to weapon spawn
+ * @param wepID			ID of the weapon to have the spawner hold
+ * @param count			Weapon count for the spawner (default 5)
+ * @param model			World model to use for the weapon spawn
+ * @return entity of the new weapon spawn, or -1 on errors.
+ */
+stock int L4D2Wep_ConvertWeaponSpawn(int entity, int wepID, int count = 5, const char[] model = "")
+{
+	if (!IsValidEntity(entity) || (!model[0] && !l_sWeaponModels[wepID][0]))
+		return -1;
+
+	float vOrigins[3], vAngles[3];
+	GetEntPropVector(entity, Prop_Send, "m_vecOrigin", vOrigins);
+	GetEntPropVector(entity, Prop_Send, "m_angRotation", vAngles);
+	AcceptEntityInput(entity, "kill");
+
+	entity = CreateEntityByName("weapon_spawn");
+	if (entity == -1) 
+		return -1;
+
+	if (model[0]){
+		if (!IsModelPrecached(model) && PrecacheModel(model) <= 0)
+			return -1;
+			
+		DispatchKeyValue(entity, "model", model);
+	}
+	else {
+		if (!IsModelPrecached(l_sWeaponModels[wepID]) && PrecacheModel(l_sWeaponModels[wepID]) <= 0)
+			return -1;
+
+		DispatchKeyValue(entity, "model", l_sWeaponModels[wepID]);
+	}
+	char sCount[6];
+	IntToString(count, sCount, sizeof(sCount));
+	DispatchKeyValue(entity, "count", sCount);
+	DispatchKeyValueVector(entity, "origin", vOrigins);
+	DispatchKeyValueVector(entity, "angles", vAngles);
+	DispatchSpawn(entity);
+	SetEntProp(entity, Prop_Send, "m_weaponID", wepID);
+	SetEntityMoveType(entity, MOVETYPE_NONE);
+	return entity;
+}
+
+stock void L4D2Wep_FixModelVectors(int wepID, float origin[3], float angles[3])
+{
+	switch (wepID)
+	{
+		case WEPID_PISTOL, WEPID_SMG, WEPID_PUMPSHOTGUN, WEPID_AUTOSHOTGUN, WEPID_RIFLE, WEPID_HUNTING_RIFLE, \
+		WEPID_SMG_SILENCED, WEPID_SHOTGUN_CHROME, WEPID_RIFLE_DESERT, WEPID_SNIPER_MILITARY, WEPID_SHOTGUN_SPAS, \
+		WEPID_GRENADE_LAUNCHER, WEPID_RIFLE_AK47, WEPID_PISTOL_MAGNUM, WEPID_SMG_MP5, WEPID_RIFLE_SG552, \
+		WEPID_SNIPER_AWP, WEPID_SNIPER_SCOUT, WEPID_RIFLE_M60: angles[2] += 90.0, origin[2] += 1.0;
+		case WEPID_FIRST_AID_KIT, WEPID_PIPE_BOMB: angles[0] += 90.0, origin[2] += 2.2;
+		case WEPID_MOLOTOV, WEPID_VOMITJAR: origin[2] += 5.0;
+		case WEPID_GASCAN: origin[2] += 10.5;
+		case WEPID_PROPANE_TANK, WEPID_GNOME_CHOMPSKI: origin[2] += 11.0;
+		case WEPID_CHAINSAW: origin[2] += 4.0;
+		case WEPID_FIREWORKS_BOX: origin[2] += 3.0;
+	}
+}
+
+stock void L4D2Wep_FixMeleeModelVectors(int meleeID, float origin[3], float angles[3])
+{
+	switch (meleeID)
+	{
+		case MELEEID_ALLIANCE_SHIELD: angles[0] -= 90.0;
+		case MELEEID_FUBAR: angles[2] += 90.0;
+		default: angles[1] += 90.0, angles[2] += 90.0;
+	}
+}
