@@ -1,4 +1,4 @@
-#define PLUGIN_VERSION "1.1"
+#define PLUGIN_VERSION "1.2"
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -20,16 +20,17 @@ bool g_bIsSpawn;
 
 public void OnPluginStart()
 {
-	RegServerCmd("sm_l4d2wep", CommandWep, "weapon structure test");
-	RegServerCmd("sm_l4d2wep_melee", CommandWepMelee, "melee structure test");
-	RegServerCmd("sm_l4d2wep_identify", CommandIdentify, "loop through entity to identify weapons");
-	RegServerCmd("sm_l4d2wep_identify_melee", CommandIdentifyMelees, "loop through entity to identify melees");
+	RegServerCmd("sm_l4d2wep", CommandWep, "Weapon structure test");
+	RegServerCmd("sm_l4d2wep_melee", CommandWepMelee, "Melee structure test");
+	RegServerCmd("sm_l4d2wep_identify", CommandIdentify, "Loop through entity to identify weapons");
+	RegServerCmd("sm_l4d2wep_identify_melee", CommandIdentifyMelees, "Loop through entity to identify melees");
 	// Usages: <weapName> || <ID> <TYPE>
-	RegAdminCmd("sm_l4d2wep_give", CommandGiveItem, ADMFLAG_ROOT, "give a weapon/melee to payer");
+	RegAdminCmd("sm_l4d2wep_give", CommandGiveItem, ADMFLAG_ROOT, "Gives a weapon/melee to payer");
 	// Usages: <weapName> || <ID> <TYPE>
-	RegAdminCmd("sm_l4d2wep_spawn", CommandSpawnItem, ADMFLAG_ROOT, "spawn a weapon/melee by player position");
+	RegAdminCmd("sm_l4d2wep_spawn", CommandSpawnItem, ADMFLAG_ROOT, "Creates a weapon/melee spawn class. If it not possible creates a single weapon/melee");
 	// Usages: <IsSpawnClass> [SpawnMelees]
-	RegAdminCmd("sm_l4d2wep_spawn_all", CommandSpawnItems, ADMFLAG_ROOT, "spawn items with 0.5s interval");
+	RegAdminCmd("sm_l4d2wep_spawn_all", CommandSpawnItems, ADMFLAG_ROOT, "Spawns items with 0.5s interval");
+	RegAdminCmd("sm_l4d2wep_eq", CommandEquip, ADMFLAG_ROOT, "Creates and equip a single weapon/melee to player slot");
 }
 
 public void OnMapStart()
@@ -79,37 +80,75 @@ public Action CommandWepMelee(int args)
 
 public Action CommandIdentify(int args)
 {
-	LogMessage("IDENTIFY ENT TEST");
-	int iEnts = GetEntityCount(), iEnt, iWepID;
+	int i, iEnts = GetEntityCount(), iCount, iWepID;
 	char sClassName[L4DWEP_NAME_LEN];
-	for (int i = MAXPLAYERS+1; i <= iEnts; i++){
-		if (IsValidEntity(i) && (iEnt = EntRefToEntIndex(i)) != INVALID_ENT_REFERENCE && (iWepID = L4D2Wep_Identify(iEnt)) != WEPID_NONE){
-			GetEntityClassname(iEnt, sClassName, sizeof(sClassName));
-			LogMessage("ent %d, ID %d, Class '%s', Name '%s'", i, iWepID, sClassName, L4D2Wep_GetNameByID(iWepID));
+	LogMessage("IDENTIFY_SPAWN");
+	iCount = 0;
+	for (i = MaxClients+1; i <= iEnts; i++){
+		if (IsValidEntity(i) && (iWepID = L4D2Wep_Identify(i, IDENTIFY_SPAWN)) != WEPID_NONE){
+			GetEntityClassname(i, sClassName, sizeof(sClassName));
+			LogMessage("%d ent %d, ID %d, Class '%s', Name '%s'", ++iCount, i, iWepID, sClassName, L4D2Wep_GetNameByID(iWepID));
+		}
+	}
+	LogMessage("IDENTIFY_SINGLE");
+	iCount = 0;
+	for (i = MaxClients+1; i <= iEnts; i++){
+		if (IsValidEntity(i) && (iWepID = L4D2Wep_Identify(i, IDENTIFY_SINGLE)) != WEPID_NONE){
+			GetEntityClassname(i, sClassName, sizeof(sClassName));
+			LogMessage("%d ent %d, ID %d, Class '%s', Name '%s'", ++iCount, i, iWepID, sClassName, L4D2Wep_GetNameByID(iWepID));
+		}
+	}
+	LogMessage("IDENTIFY_HOLD");
+	iCount = 0;
+	for (i = MaxClients+1; i <= iEnts; i++){
+		if (IsValidEntity(i) && (iWepID = L4D2Wep_Identify(i, IDENTIFY_HOLD)) != WEPID_NONE){
+			GetEntityClassname(i, sClassName, sizeof(sClassName));
+			LogMessage("%d ent %d, ID %d, Class '%s', Name '%s'", ++iCount, i, iWepID, sClassName, L4D2Wep_GetNameByID(iWepID));
+		}
+	}
+	LogMessage("IDENTIFY ALL");
+	iCount = 0;
+	for (i = MaxClients+1; i <= iEnts; i++){
+		if (IsValidEntity(i) && (iWepID = L4D2Wep_Identify(i, IDENTIFY_ALL)) != WEPID_NONE){
+			GetEntityClassname(i, sClassName, sizeof(sClassName));
+			LogMessage("%d ent %d, ID %d, Class '%s', Name '%s'", ++iCount, i, iWepID, sClassName, L4D2Wep_GetNameByID(iWepID));
 		}
 	}
 }
-
+// weapon_melee_spawn, weapon_item_spawn
 public Action CommandIdentifyMelees(int args)
 {
-	LogMessage("IDENTIFY MELEE ENT TEST");
-	int iEnts = GetEntityCount(), iEnt, iMeleeID;
+	int i, iEnts = GetEntityCount(), iCount, iMeleeID;
 	char sClassName[L4DWEP_NAME_LEN];
-	for (int i = MAXPLAYERS+1; i <= iEnts; i++){
-		if (IsValidEntity(i) && (iEnt = EntRefToEntIndex(i)) != INVALID_ENT_REFERENCE){
-
-			// weapon_melee_spawn, weapon_item_spawn
-			if ((iMeleeID = L4D2Wep_IdentifyMelee(iEnt, true)) != MELEEID_NONE){
-
-				GetEntityClassname(iEnt, sClassName, sizeof(sClassName));
-				LogMessage("ent %d, ID %d, Class '%s', Name '%s'", i, iMeleeID, sClassName, L4D2Wep_GetMeleeNameByID(iMeleeID));
-			}
-			// weapon_melee
-			else if ((iMeleeID = L4D2Wep_IdentifyMelee(iEnt)) != MELEEID_NONE){
-
-				GetEntityClassname(iEnt, sClassName, sizeof(sClassName));
-				LogMessage("ent %d, ID %d, Class '%s', Name '%s'", i, iMeleeID, sClassName, L4D2Wep_GetMeleeNameByID(iMeleeID));
-			}
+	LogMessage("IDENTIFY_SPAWN");
+	for (i = MaxClients+1; i <= iEnts; i++){
+		if (IsValidEntity(i) && (iMeleeID = L4D2Wep_IdentifyMelee(i, IDENTIFY_SPAWN)) != MELEEID_NONE){
+			GetEntityClassname(i, sClassName, sizeof(sClassName));
+			LogMessage("%d ent %d, ID %d, Class '%s', Name '%s'", ++iCount, i, iMeleeID, sClassName, L4D2Wep_GetMeleeNameByID(iMeleeID));
+		}
+	}
+	LogMessage("IDENTIFY_SINGLE");
+	iCount = 0;
+	for (i = MaxClients+1; i <= iEnts; i++){
+		if (IsValidEntity(i) && (iMeleeID = L4D2Wep_IdentifyMelee(i, IDENTIFY_SINGLE)) != MELEEID_NONE){
+			GetEntityClassname(i, sClassName, sizeof(sClassName));
+			LogMessage("%d ent %d, ID %d, Class '%s', Name '%s'", ++iCount, i, iMeleeID, sClassName, L4D2Wep_GetMeleeNameByID(iMeleeID));
+		}
+	}
+	LogMessage("IDENTIFY_HOLD");
+	iCount = 0;
+	for (i = MaxClients+1; i <= iEnts; i++){
+		if (IsValidEntity(i) && (iMeleeID = L4D2Wep_IdentifyMelee(i, IDENTIFY_HOLD)) != MELEEID_NONE){
+			GetEntityClassname(i, sClassName, sizeof(sClassName));
+			LogMessage("%d ent %d, ID %d, Class '%s', Name '%s'", ++iCount, i, iMeleeID, sClassName, L4D2Wep_GetMeleeNameByID(iMeleeID));
+		}
+	}
+	LogMessage("IDENTIFY_ALL");
+	iCount = 0;
+	for (i = MaxClients+1; i <= iEnts; i++){
+		if (IsValidEntity(i) && (iMeleeID = L4D2Wep_IdentifyMelee(i, IDENTIFY_ALL)) != MELEEID_NONE){
+			GetEntityClassname(i, sClassName, sizeof(sClassName));
+			LogMessage("%d ent %d, ID %d, Class '%s', Name '%s'", ++iCount, i, iMeleeID, sClassName, L4D2Wep_GetMeleeNameByID(iMeleeID));
 		}
 	}
 }
@@ -127,7 +166,7 @@ public Action CommandGiveItem(int client, int args)
 			int iID;
 			ItemType Type = L4D2Wep_IdentifyItemByName(sTemp, iID);
 
-			if (Type == ITEM_NONE || L4D2Wep_IsItemNoneID(iID, Type) || !L4D2Wep_IsValidItemID(iID, Type)){
+			if (!L4D2Wep_IsValidItemAndID(iID, Type)){
 				ReplyToCommand(client, "Unknown weapon name or bad ID!");
 				return Plugin_Handled;
 			}
@@ -140,7 +179,7 @@ public Action CommandGiveItem(int client, int args)
 			GetCmdArg(2, sTemp, sizeof(sTemp));
 			ItemType Type = view_as<ItemType>(StringToInt(sTemp));
 
-			if (Type == ITEM_NONE || L4D2Wep_IsItemNoneID(iID, Type) || !L4D2Wep_IsValidItemID(iID, Type)){
+			if (!L4D2Wep_IsValidItemAndID(iID, Type)){
 				ReplyToCommand(client, "Unknown weapon name or bad ID!");
 				return Plugin_Handled;
 			}
@@ -178,7 +217,7 @@ public Action CommandSpawnItem(int client, int args)
 				Type = view_as<ItemType>(StringToInt(sTemp));
 			}
 
-			if (Type == ITEM_NONE || L4D2Wep_IsItemNoneID(iID, Type) || !L4D2Wep_IsValidItemID(iID, Type)){
+			if (!L4D2Wep_IsValidItemAndID(iID, Type)){
 				ReplyToCommand(client, "Unknown weapon name or bad ID!");
 				return Plugin_Handled;
 			}
@@ -260,3 +299,64 @@ public Action WC_t_SpawnMelees(Handle timer, any client)
 	L4D2Wep_SpawnMelee(g_iCmdID++, vOrigin, _, _, g_bIsSpawn);
 	return Plugin_Continue;
 }
+
+public Action CommandEquip(int client, int args)
+{
+	if (client){
+
+		char sTemp[L4DWEP_NAME_LEN];
+		GetCmdArg(1, sTemp, sizeof(sTemp));
+
+		if (args == 1 || args == 2){
+
+			int iID;
+			ItemType Type;
+			// spawn wep by name
+			if (args == 1){
+				Type = L4D2Wep_IdentifyItemByName(sTemp, iID);
+			}
+			// give wep by id and type
+			else if (args == 2){
+
+				iID = StringToInt(sTemp);
+				GetCmdArg(2, sTemp, sizeof(sTemp));
+				Type = view_as<ItemType>(StringToInt(sTemp));
+			}
+
+			if (!L4D2Wep_IsValidItemAndID(iID, Type)){
+				ReplyToCommand(client, "Unknown weapon name or bad ID!");
+				return Plugin_Handled;
+			}
+
+			float vOrigin[3];
+			GetClientAbsOrigin(client, vOrigin);
+			int iEnt = L4D2Wep_SpawnItem(iID, Type, vOrigin, _, _, false);
+
+			if (iEnt == -1){
+				ReplyToCommand(client, "Failed to spawn ID %d, ItemType %d, ent %d", iID, Type, iEnt);
+				return Plugin_Handled;
+			}
+
+			int iItemSlot = L4D2Wep_IdentifyEquipSlot(iEnt);
+			if (iItemSlot >= 0){
+			
+				int iCurrentWep = GetPlayerWeaponSlot(client, iItemSlot);
+				if (L4D2Wep_IsValidAndEntity(iCurrentWep)){
+					RemovePlayerItem(client, iCurrentWep);
+					AcceptEntityInput(iCurrentWep, "Kill");
+				}
+				EquipPlayerWeapon(client, iEnt);
+				// TODO: set player ammo
+			}
+			else
+				ReplyToCommand(client, "Failed to equip! Item has invalid slot");
+		}
+		else
+			ReplyToCommand(client, "Usages: <weapName> || <ID> <TYPE>");
+	}
+	else
+		ReplyToCommand(client, "Command is not available from server console!");
+
+	return Plugin_Handled;
+}
+

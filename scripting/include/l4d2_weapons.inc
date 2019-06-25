@@ -49,6 +49,8 @@
 |
 | WEPID enumerations are *NOT* arbitrary!
 | They are used in game as the weaponid for weapon_spawn entities.
+| @remark WEPID_UPGRADE_ITEM used for upgrade_ammo_explosive, upgrade_ammo_incendiary,
+| upgrade_laser_sight, weapon_upgradepack_explosive_spawn, weapon_upgradepack_incendiary_spawn
 |
 */
 enum ()
@@ -110,6 +112,15 @@ enum ()
 	WEPID_AMMO,             // 54
 	WEPID_UPGRADE_ITEM,      // 55
 	WEPID_SIZE
+};
+
+enum IdentifyType
+{
+	IDENTIFY_SPAWN = (1<<0),	// 1 Identify any "_spawn" classes
+	IDENTIFY_SINGLE = (1<<1), // 2 Identify any single weapons ("weapons_" classes)
+	IDENTIFY_HOLD = (1<<2), // 4 Identify any weapons that player hold
+	IDENTIFY_SAFE  = IDENTIFY_SPAWN|IDENTIFY_SINGLE,
+	IDENTIFY_ALL = IDENTIFY_SPAWN|IDENTIFY_SINGLE|IDENTIFY_HOLD
 };
 
 /*
@@ -411,19 +422,37 @@ stock int L4D2Wep_NameToIDEx(char[] weaponName)
  * @param entity		Index of entity to identify
  * @return WEPID for the entity if it is a weapon, WEPID_NONE otherwise
  */
-stock int L4D2Wep_Identify(int entity)
+stock int L4D2Wep_Identify(int entity, IdentifyType flags = IDENTIFY_SAFE)
 {
-	if(entity < MAXPLAYERS+1 || !IsValidEntity(entity))
-		return WEPID_NONE;
+	if(L4D2Wep_IsValidAndEntity(entity)){
 
-	char sClass[64];
-	if (!GetEntityClassname(entity, sClass, sizeof(sClass)))
-		return WEPID_NONE;
+		char sClass[64];
+		if (!GetEntityClassname(entity, sClass, sizeof(sClass)))
+			return WEPID_NONE;
 
-	if (HasEntProp(entity, Prop_Send, "m_weaponID"))
-		return GetEntProp(entity, Prop_Send, "m_weaponID");
+		if (HasEntProp(entity, Prop_Data, "m_hOwner")){
 
-	return L4D2Wep_NameToIDEx(sClass);
+			if ((flags & IDENTIFY_HOLD)){
+				if (GetEntPropEnt(entity, Prop_Data, "m_hOwner") != -1)
+					return L4D2Wep_NameToIDEx(sClass);
+			}
+			else if (GetEntPropEnt(entity, Prop_Data, "m_hOwner") != -1)
+				return WEPID_NONE;
+		}
+
+		if ((flags & IDENTIFY_SINGLE)){
+			int iWepID = L4D2Wep_NameToID(sClass);
+			if (iWepID != WEPID_NONE)
+				return iWepID;
+		}
+		if ((flags & IDENTIFY_SPAWN) && HasEntProp(entity, Prop_Send, "m_weaponID")){
+			int iWepID = GetEntProp(entity, Prop_Send, "m_weaponID");
+			if (iWepID != WEPID_NONE)
+				return iWepID;
+			return L4D2Wep_NameToIDEx(sClass);
+		}
+	}
+	return WEPID_NONE;
 }
 
 // Precache a weapon world models (only for valid mdl)
@@ -453,11 +482,11 @@ stock void L4D2Wep_AddSpawnSuffix(char[] weaponName, char[] store, int len)
 stock void L4D2Wep_RemoveSpawnSuffix(char[] weaponName, int Len = 0)
 {
 	if (Len)
-		weaponName[Len-6]='\0';
+		weaponName[Len-6] = '\0';
 	else {
 		int len = L4D2Wep_HasSpawnSuffix(weaponName);
 		if (len)
-			weaponName[len-6]='\0';
+			weaponName[len-6] = '\0';
 	}
 }
 
@@ -468,6 +497,16 @@ stock int L4D2Wep_HasSpawnSuffix(char[] weaponName)
 	if (len-6 > 0 && StrEqual(weaponName[len-6], "_spawn"))
 		return len;
 	return 0;
+}
+
+stock bool L4D2Wep_IsValidAndEntity(int entity)
+{
+	return L4D2Wep_IsEntity(entity) && IsValidEntity(entity);
+}
+
+stock bool L4D2Wep_IsEntity(int entity)
+{
+	return entity > MaxClients;
 }
 
 /*
@@ -628,20 +667,31 @@ stock int L4D2Wep_MeleeNameToID(char[] meleeName)
  * Identifies a entity as a MELEEID.
  *
  * @param entity		Index of entity to identify
- * @param spawn			Identifies weapon_melee_spawn, weapon_item_spawn classes
+ * @param identifyFlags			Identifies weapon_melee_spawn, weapon_item_spawn classes
  * @return MELEEID for the entity if it is a weapon_melee, MELEEID_NONE otherwise
  */
-stock int L4D2Wep_IdentifyMelee(int entity, bool spawn = false)
+stock int L4D2Wep_IdentifyMelee(int entity, IdentifyType flags = IDENTIFY_SAFE)
 {
-	if (entity < MAXPLAYERS+1 || !IsValidEntity(entity) || !HasEntProp(entity, Prop_Data, spawn ? "m_iszMeleeWeapon" : "m_strMapSetScriptName"))
-	{
-		return MELEEID_NONE;
+	if (L4D2Wep_IsValidAndEntity(entity)){
+
+		char sMelee[L4DWEP_NAME_LEN];
+		if (((flags & (IDENTIFY_SINGLE|IDENTIFY_HOLD)) && HasEntProp(entity, Prop_Data, "m_strMapSetScriptName") && GetEntPropString(entity, Prop_Data, "m_strMapSetScriptName", sMelee, sizeof(sMelee))) ||
+		((flags & IDENTIFY_SPAWN) && HasEntProp(entity, Prop_Data, "m_iszMeleeWeapon") && GetEntPropString(entity, Prop_Data, "m_iszMeleeWeapon", sMelee, sizeof(sMelee)))){
+
+			if (HasEntProp(entity, Prop_Data, "m_hOwner")){
+
+				if ((flags & IDENTIFY_HOLD)){
+					if (GetEntPropEnt(entity, Prop_Data, "m_hOwner") != -1)
+						return L4D2Wep_MeleeNameToID(sMelee);
+				}
+				else if (GetEntPropEnt(entity, Prop_Data, "m_hOwner") != -1)
+					return MELEEID_NONE;
+			}
+			if ((flags & (IDENTIFY_SINGLE|IDENTIFY_SPAWN)))
+				return L4D2Wep_MeleeNameToID(sMelee);
+		}
 	}
-
-	char sMelee[L4DWEP_NAME_LEN];
-	GetEntPropString(entity, Prop_Data, spawn ? "m_iszMeleeWeapon" : "m_strMapSetScriptName", sMelee, sizeof(sMelee));
-
-	return L4D2Wep_MeleeNameToID(sMelee);
+	return MELEEID_NONE;
 }
 
 /**
@@ -713,14 +763,14 @@ enum ItemType
 }
 
 // Identifies a entity as ItemType
-stock ItemType L4D2Wep_IdentifyItemByEnt(int entity, int &anyID = 0)
+stock ItemType L4D2Wep_IdentifyItemByEnt(int entity, int &anyID = 0, IdentifyType flags = IDENTIFY_SAFE)
 {
-	int iID = L4D2Wep_IdentifyMelee(entity);
+	int iID = L4D2Wep_IdentifyMelee(entity, flags);
 	ItemType Type;
 
 	if (iID == MELEEID_NONE){
 
-		iID = L4D2Wep_Identify(entity);
+		iID = L4D2Wep_Identify(entity, flags);
 
 		if (iID == WEPID_NONE)
 			Type = ITEM_NONE;
@@ -756,11 +806,28 @@ stock ItemType L4D2Wep_IdentifyItemByName(char[] anyName, int &anyID = 0)
 	return Type;
 }
 
+stock int L4D2Wep_IdentifyEquipSlot(int entity)
+{
+	int iID;
+	ItemType Type = L4D2Wep_IdentifyItemByEnt(entity, iID, IDENTIFY_SINGLE);
+	if (Type != ITEM_NONE && !L4D2Wep_IsItemNoneID(iID, Type) && L4D2Wep_IsValidItemID(iID, Type))
+		return (Type == ITEM_WEP ? l_iWeaponSlots[iID] : 1);
+	return -1;
+}
+
+// full check
+stock bool L4D2Wep_IsValidItemAndID(int anyID, ItemType type)
+{
+	return type != ITEM_NONE && !L4D2Wep_IsItemNoneID(anyID, type) && L4D2Wep_IsValidItemID(anyID, type);
+}
+
+// check for both weapon and melee none id
 stock bool L4D2Wep_IsItemNoneID(int anyID, ItemType type)
 {
 	return anyID == (type == ITEM_WEP ? WEPID_NONE : MELEEID_NONE);
 }
 
+// check for both weapon and melee garbage values
 stock bool L4D2Wep_IsValidItemID(int anyID, ItemType type)
 {
 	return type == ITEM_WEP ? L4D2Wep_IsValidID(anyID) : L4D2Wep_IsValidMeleeID(anyID);
@@ -1098,7 +1165,7 @@ stock int L4D2Wep_SpawnMelee(int meleeID, float origin[3], float angles[3] = {0.
  */
 stock int L4D2Wep_ConvertWeaponSpawn(int entity, int wepID, int count = 5, const char[] model = "")
 {
-	if (!IsValidEntity(entity) || (!model[0] && !l_sWeaponModels[wepID][0]))
+	if (!L4D2Wep_IsValidAndEntity(entity) || (!model[0] && !l_sWeaponModels[wepID][0]) || (HasEntProp(entity, Prop_Data, "m_hOwner") && GetEntPropEnt(entity, Prop_Data, "m_hOwner") != -1))
 		return -1;
 
 	float vOrigins[3], vAngles[3];
@@ -1107,13 +1174,13 @@ stock int L4D2Wep_ConvertWeaponSpawn(int entity, int wepID, int count = 5, const
 	AcceptEntityInput(entity, "kill");
 
 	entity = CreateEntityByName("weapon_spawn");
-	if (entity == -1) 
+	if (entity == -1)
 		return -1;
 
 	if (model[0]){
 		if (!IsModelPrecached(model) && PrecacheModel(model) <= 0)
 			return -1;
-			
+
 		DispatchKeyValue(entity, "model", model);
 	}
 	else {
