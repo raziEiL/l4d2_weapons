@@ -38,7 +38,7 @@
 #if defined __l4d2_weapons_inc__
 #endinput
 #endif
-#define __l4d2_weapons_inc__
+#define __l4d2_weapons_inc__ "1.1"
 
 #define L4DWEP_NAME_LEN 64
 
@@ -119,8 +119,8 @@ enum IdentifyType
 	IDENTIFY_SPAWN = (1<<0),	// 1 Identify any "_spawn" classes
 	IDENTIFY_SINGLE = (1<<1), // 2 Identify any single weapons ("weapons_" classes)
 	IDENTIFY_HOLD = (1<<2), // 4 Identify any weapons that player hold
-	IDENTIFY_SAFE  = IDENTIFY_SPAWN|IDENTIFY_SINGLE,
-	IDENTIFY_ALL = IDENTIFY_SPAWN|IDENTIFY_SINGLE|IDENTIFY_HOLD
+	IDENTIFY_SAFE  = IDENTIFY_SPAWN|IDENTIFY_SINGLE, // mask
+	IDENTIFY_ALL = IDENTIFY_SPAWN|IDENTIFY_SINGLE|IDENTIFY_HOLD // mask
 };
 
 /*
@@ -907,13 +907,6 @@ stock static void GetAmmoCvars()
 		l_iCvarAmmo[i] = l_hCvarAmmo[i].IntValue;
 }
 
-stock static void InitAmmoCvar(AmmoID ammoID)
-{
-	l_hCvarAmmo[ammoID] = FindConVar(l_sCvarAmmoNames[ammoID]);
-	l_iCvarAmmo[ammoID] = l_hCvarAmmo[ammoID].IntValue;
-	l_hCvarAmmo[ammoID].AddChangeHook(L4DWep_ch_CvarAmmoChanged);
-}
-
 /*
 |--------------------------------------------------------------------------
 | AMMO HELPER PUBLIC STRUCTURE
@@ -928,9 +921,10 @@ stock static void InitAmmoCvar(AmmoID ammoID)
  */
 stock void L4DWep_InitAmmoCvars()
 {
-	if (l_hCvarAmmo[0] == null){
-		for (AmmoID i; i < AmmoID; i++)
-			InitAmmoCvar(i);
+	for (AmmoID i; i < AmmoID; i++){
+		l_hCvarAmmo[i] = FindConVar(l_sCvarAmmoNames[i]);
+		l_iCvarAmmo[i] = l_hCvarAmmo[i].IntValue;
+		l_hCvarAmmo[i].AddChangeHook(L4DWep_ch_CvarAmmoChanged);
 	}
 }
 
@@ -965,7 +959,7 @@ stock AmmoID L4DWep_WepIDToAmmoID(int wepID)
 stock int L4DWep_GetAmmo(AmmoID ammoID)
 {
 	if (l_hCvarAmmo[ammoID] == null)
-		InitAmmoCvar(ammoID);
+		L4DWep_InitAmmoCvars();
 	return l_iCvarAmmo[ammoID];
 }
 
