@@ -12,7 +12,7 @@ Since the `weapon_melee` class contains its own melees, the weapons code has bee
 
 ## Usages:
 Identify entity or weapon name as `ItemType` and detect weapon type (**WEAPON** / **MELEE**).  
-When you got an **ItemType** you can do following things:
+When you got an `ItemType` you can do following things:
  - Grab info about: model, weapon name, weapon slot index, check for spawn class
  - Create any weapons as weapon_ or _spawn class
  - Create any melees as weapon_melee or weapon_melee_spawn class
