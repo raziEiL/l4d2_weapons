@@ -6,7 +6,19 @@ The API for SourceMod plugin developers that provides stock of useful weapons fu
  - SourceMod 1.7 syntax.
  - Weapons/Melees identification.
  - Provides weapons/melees ID, names, models etc.
- 
+
+## API structure
+Since the `weapon_melee` class contains its own melees, the weapons code has been logically divided into two parts: **WEAPON** and **MELEE**. To make the code more flexible and avoid to use `view_as` often, **WEAPON** and **MELEE** enums don't have a tag! Therefore, you must understand what value you are passing to the function. Both parts have functions for checking for garbage value and identify their type of weapon. The **ITEM** struct is needed to determine to which type (**WEAPON** / **MELEE**) an entity or weapon name belongs.
+
+## Usages:
+Identify entity or weapon name as `ItemType` and detect weapon type (**WEAPON** / **MELEE**).  
+When you got an **ItemType** you can do following things:
+ - Grab info about: model, weapon name, weapon slot index, check for spawn class
+ - Create any weapons as weapon_ or _spawn class
+ - Create any melees as weapon_melee or weapon_melee_spawn class
+ - Give a weapon/melee to player (based on give cmd)
+ - Gets a weapon max ammo (based on convars)
+
 ## Note:
 **l4d2_weapons** does not provide a way to unlock weapons, for this goal you may use any known plugins or extensions. However, if you unlock any vanilla weapons (like a `knife`) the **l4d2_weapons** will detect it and support.
 
