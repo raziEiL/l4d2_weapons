@@ -21,6 +21,7 @@ When you got an `ItemType` you can do following things:
 
 ## API:
 ### Weapons:
+```
 void L4D2Wep_Init()
 char[] L4D2Wep_GetNameByID(int wepID)
 bool L4D2Wep_HasSpawnClass(int wepID)
@@ -32,13 +33,17 @@ int L4D2Wep_NameToID(char[] weaponName)
 int L4D2Wep_NameToIDEx(char[] weaponName)
 int L4D2Wep_Identify(int entity, int flags = IDENTIFY_SAFE)
 void L4D2Wep_PrecacheModels()
+```
 #### Weapons Helpers:
+```
 void L4D2Wep_AddSpawnSuffix(char[] weaponName, char[] store, int len)
 void L4D2Wep_RemoveSpawnSuffix(char[] weaponName, int Len = 0)
 int L4D2Wep_HasSpawnSuffix(char[] weaponName)
 bool L4D2Wep_IsValidAndEntity(int entity)
 bool L4D2Wep_IsEntity(int entity)
+```
 ### Meeles:
+```
 void L4D2Wep_InitMelees()
 char L4D2Wep_GetMeleeNameByID(int meleepID)
 char L4D2Wep_GetMeleeModelByID(int meleepID)
@@ -48,7 +53,9 @@ int L4D2Wep_IdentifyMelee(int entity, int flags = IDENTIFY_SAFE)
 void L4D2Wep_OnMapStart()
 bool L4D2Wep_IsValidMelee(char[] meleeName)
 void L4D2Wep_PrecacheMeleeModels()
+```
 ### Items:
+```
 int L4D2Wep_IdentifyItemByEnt(int entity, int &anyID = 0, int flags = IDENTIFY_SAFE)
 int L4D2Wep_IdentifyItemByName(char[] anyName, int &anyID = 0)
 int L4D2Wep_IdentifyEquipSlot(int entity)
@@ -57,7 +64,9 @@ bool L4D2Wep_IsItemNoneID(int anyID, int itemType)
 bool L4D2Wep_IsValidItemID(int anyID, int itemType)
 void L4D2Wep_GiveItemByName(int client, char[] weaponName)
 void L4D2Wep_GiveItemByID(int client, int anyID, int itemType)
+```
 ### Ammo:
+```
 void L4D2Wep_InitAmmoCvars()
 int L4D2Wep_WepIDToAmmoID(int wepID)
 int L4D2Wep_GetAmmo(int ammoID)
@@ -65,14 +74,19 @@ bool L4D2Wep_SetAmmoByID(int entity, int wepID)
 int L4D2Wep_WepIDToOffset(int wepID)
 int L4D2Wep_GetPlayerAmmo(int client)
 bool L4D2Wep_SetPlayerAmmo(int client, int maxAmmo)
+```
 ### Spawn:
+```
 int L4D2Wep_SpawnItem(int anyID, int itemType, float origin[3], float angles[3] = {0.0, ...}, bool applyVecFix = true, bool spawn = true, int count = 5)
 int L4D2Wep_Spawn(int wepID, float origin[3], float angles[3] = {0.0, ...}, bool applyVecFix = true, bool spawn = true, int count = 5)
 int L4D2Wep_SpawnMelee(int meleeID, float origin[3], float angles[3] = {0.0, ...}, bool applyVecFix = true, bool spawn = true, int count = 5)
 int L4D2Wep_ConvertWeaponSpawn(int entity, int wepID, int count = 5, const char[] model = "")
+```
 ### Fixes:
+```
 void L4D2Wep_FixModelVectors(int wepID, float origin[3], float angles[3])
 void L4D2Wep_FixMeleeModelVectors(int meleeID, float origin[3], float angles[3])
+```
 
 ## Note:
 **l4d2_weapons** does not provide a way to unlock weapons, for this goal you may use any known plugins or extensions. However, if you unlock any vanilla weapons (like a `knife`) the **l4d2_weapons** will detect it and support.
