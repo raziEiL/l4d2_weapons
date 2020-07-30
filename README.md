@@ -8,7 +8,7 @@ The API for SourceMod plugin developers that provides stock of useful weapons fu
  - Provides weapons/melees ID, names, models etc.
 
 ## API structure
-Since the `weapon_melee` class contains its own melees, the weapons code has been logically divided into two parts: **WEAPON** and **MELEE**. To make the code more flexible and avoid to use `view_as` often, **WEAPON** and **MELEE** enums don't have a tag! Therefore, you must understand what value you are passing to the function. Both parts have functions for checking for garbage value and identify their type of weapon. The **ITEM** struct is needed to determine to which type (**WEAPON** / **MELEE**) an entity or weapon name belongs.
+Since the `weapon_melee` class contains its own melees, the weapons code has been logically divided into two parts: **WEAPON** and **MELEE**. Both parts have functions to check for garbage value and identify their type of weapon. The **ITEM** struct is needed to determine to which type (**WEAPON** / **MELEE**) an entity or weapon name belongs.
 
 ## Usages:
 Identify entity or weapon name as `ItemType` and detect weapon type (**WEAPON** / **MELEE**).  
@@ -18,6 +18,61 @@ When you got an `ItemType` you can do following things:
  - Create any melees as weapon_melee or weapon_melee_spawn class (Fixed pos/angles)
  - Give a weapon/melee to player (based on give cmd)
  - Gets a weapon max ammo (based on convars)
+
+## API:
+### Weapons:
+void L4D2Wep_Init()
+char[] L4D2Wep_GetNameByID(int wepID)
+bool L4D2Wep_HasSpawnClass(int wepID)
+char[] L4D2Wep_GetModelByID(int wepID)
+int L4D2Wep_GetSlotByID(int wepID)
+bool L4D2Wep_IsValidID(int wepID)
+bool L4D2Wep_HasValidModel(int wepID)
+int L4D2Wep_NameToID(char[] weaponName)
+int L4D2Wep_NameToIDEx(char[] weaponName)
+int L4D2Wep_Identify(int entity, int flags = IDENTIFY_SAFE)
+void L4D2Wep_PrecacheModels()
+#### Weapons Helpers:
+void L4D2Wep_AddSpawnSuffix(char[] weaponName, char[] store, int len)
+void L4D2Wep_RemoveSpawnSuffix(char[] weaponName, int Len = 0)
+int L4D2Wep_HasSpawnSuffix(char[] weaponName)
+bool L4D2Wep_IsValidAndEntity(int entity)
+bool L4D2Wep_IsEntity(int entity)
+### Meeles:
+void L4D2Wep_InitMelees()
+char L4D2Wep_GetMeleeNameByID(int meleepID)
+char L4D2Wep_GetMeleeModelByID(int meleepID)
+bool L4D2Wep_IsValidMeleeID(int meleeID)
+int L4D2Wep_MeleeNameToID(char[] meleeName)
+int L4D2Wep_IdentifyMelee(int entity, int flags = IDENTIFY_SAFE)
+void L4D2Wep_OnMapStart()
+bool L4D2Wep_IsValidMelee(char[] meleeName)
+void L4D2Wep_PrecacheMeleeModels()
+### Items:
+int L4D2Wep_IdentifyItemByEnt(int entity, int &anyID = 0, int flags = IDENTIFY_SAFE)
+int L4D2Wep_IdentifyItemByName(char[] anyName, int &anyID = 0)
+int L4D2Wep_IdentifyEquipSlot(int entity)
+bool L4D2Wep_IsValidItemAndID(int anyID, int itemType)
+bool L4D2Wep_IsItemNoneID(int anyID, int itemType)
+bool L4D2Wep_IsValidItemID(int anyID, int itemType)
+void L4D2Wep_GiveItemByName(int client, char[] weaponName)
+void L4D2Wep_GiveItemByID(int client, int anyID, int itemType)
+### Ammo:
+void L4D2Wep_InitAmmoCvars()
+int L4D2Wep_WepIDToAmmoID(int wepID)
+int L4D2Wep_GetAmmo(int ammoID)
+bool L4D2Wep_SetAmmoByID(int entity, int wepID)
+int L4D2Wep_WepIDToOffset(int wepID)
+int L4D2Wep_GetPlayerAmmo(int client)
+bool L4D2Wep_SetPlayerAmmo(int client, int maxAmmo)
+### Spawn:
+int L4D2Wep_SpawnItem(int anyID, int itemType, float origin[3], float angles[3] = {0.0, ...}, bool applyVecFix = true, bool spawn = true, int count = 5)
+int L4D2Wep_Spawn(int wepID, float origin[3], float angles[3] = {0.0, ...}, bool applyVecFix = true, bool spawn = true, int count = 5)
+int L4D2Wep_SpawnMelee(int meleeID, float origin[3], float angles[3] = {0.0, ...}, bool applyVecFix = true, bool spawn = true, int count = 5)
+int L4D2Wep_ConvertWeaponSpawn(int entity, int wepID, int count = 5, const char[] model = "")
+### Fixes:
+void L4D2Wep_FixModelVectors(int wepID, float origin[3], float angles[3])
+void L4D2Wep_FixMeleeModelVectors(int meleeID, float origin[3], float angles[3])
 
 ## Note:
 **l4d2_weapons** does not provide a way to unlock weapons, for this goal you may use any known plugins or extensions. However, if you unlock any vanilla weapons (like a `knife`) the **l4d2_weapons** will detect it and support.
@@ -32,4 +87,4 @@ If you have custom weapons on your server and want to **l4d2_weapons** support i
  - Thanks [@Electr0](https://forums.alliedmods.net/member.php?u=152668) for method to detect valid melees via string table.
  
 ## Donation
-My cat wants a new toy! I try to make quality and beautiful toys for my beloved cat. I create toys in my spare time but sometimes I can step into a tangle and get confused! Oops! It takes time to get out! When the toy is ready I give it to the cat, the GitHub cat and the community can also play with it. So if you enjoy my toys and want to thank me for my work, you can send any amount. All money will be spent on milk! [Donate :feet:](https://www.paypal.me/razicat)
+If you want to thank us for the hard work feel free to [send any amount](https://www.paypal.me/razicat "send any amount").

@@ -1,4 +1,4 @@
-#define PLUGIN_VERSION "1.2"
+#define PLUGIN_VERSION "1.3"
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -31,6 +31,7 @@ public void OnPluginStart()
 	// Usages: <IsSpawnClass> [SpawnMelees]
 	RegAdminCmd("sm_l4d2wep_spawn_all", CommandSpawnItems, ADMFLAG_ROOT, "Spawns items with 0.5s interval");
 	RegAdminCmd("sm_l4d2wep_eq", CommandEquip, ADMFLAG_ROOT, "Creates and equip a single weapon/melee to player slot");
+	RegAdminCmd("sm_l4d2wep_set", CommandSet, ADMFLAG_ROOT, "Sets the player max ammo count");
 }
 
 public void OnMapStart()
@@ -54,7 +55,7 @@ public Action CommandWep(int args)
 		LogMessage("ID %d %s", i, L4D2Wep_NameToID(L4D2Wep_GetNameByID(i)) == i ? "OK" : "NOT EQUAL!");
 
 	LogMessage("SUFFIX TEST");
-	char sWepClass[L4DWEP_NAME_LEN];
+	char sWepClass[L4D2WEP_NAME_LEN];
 	sWepClass = L4D2Wep_GetNameByID(WEPID_AUTOSHOTGUN);
 	LogMessage("'%s' - Initial string", sWepClass);
 	L4D2Wep_AddSpawnSuffix(sWepClass, sWepClass, sizeof(sWepClass));
@@ -81,7 +82,7 @@ public Action CommandWepMelee(int args)
 public Action CommandIdentify(int args)
 {
 	int i, iEnts = GetEntityCount(), iCount, iWepID;
-	char sClassName[L4DWEP_NAME_LEN];
+	char sClassName[L4D2WEP_NAME_LEN];
 	LogMessage("IDENTIFY_SPAWN");
 	iCount = 0;
 	for (i = MaxClients+1; i <= iEnts; i++){
@@ -119,7 +120,7 @@ public Action CommandIdentify(int args)
 public Action CommandIdentifyMelees(int args)
 {
 	int i, iEnts = GetEntityCount(), iCount, iMeleeID;
-	char sClassName[L4DWEP_NAME_LEN];
+	char sClassName[L4D2WEP_NAME_LEN];
 	LogMessage("IDENTIFY_SPAWN");
 	for (i = MaxClients+1; i <= iEnts; i++){
 		if (IsValidEntity(i) && (iMeleeID = L4D2Wep_IdentifyMelee(i, IDENTIFY_SPAWN)) != MELEEID_NONE){
@@ -157,33 +158,33 @@ public Action CommandGiveItem(int client, int args)
 {
 	if (client){
 
-		char sTemp[L4DWEP_NAME_LEN];
+		char sTemp[L4D2WEP_NAME_LEN];
 		GetCmdArg(1, sTemp, sizeof(sTemp));
 
 		// give wep by name
 		if (args == 1){
 
 			int iID;
-			ItemType Type = L4D2Wep_IdentifyItemByName(sTemp, iID);
+			int Type = L4D2Wep_IdentifyItemByName(sTemp, iID);
 
 			if (!L4D2Wep_IsValidItemAndID(iID, Type)){
 				ReplyToCommand(client, "Unknown weapon name or bad ID!");
 				return Plugin_Handled;
 			}
-			L4DWep_GiveItemByName(client, sTemp);
+			L4D2Wep_GiveItemByName(client, sTemp);
 		}
 		// give wep by id and type
 		else if (args == 2){
 
 			int iID = StringToInt(sTemp);
 			GetCmdArg(2, sTemp, sizeof(sTemp));
-			ItemType Type = view_as<ItemType>(StringToInt(sTemp));
+			int Type = StringToInt(sTemp);
 
 			if (!L4D2Wep_IsValidItemAndID(iID, Type)){
 				ReplyToCommand(client, "Unknown weapon name or bad ID!");
 				return Plugin_Handled;
 			}
-			L4DWep_GiveItemByID(client, iID, Type);
+			L4D2Wep_GiveItemByID(client, iID, Type);
  		}
 		else
 			ReplyToCommand(client, "Usages: <weapName> || <ID> <TYPE>");
@@ -198,13 +199,13 @@ public Action CommandSpawnItem(int client, int args)
 {
 	if (client){
 
-		char sTemp[L4DWEP_NAME_LEN];
+		char sTemp[L4D2WEP_NAME_LEN];
 		GetCmdArg(1, sTemp, sizeof(sTemp));
 
 		if (args == 1 || args == 2){
 
 			int iID;
-			ItemType Type;
+			int Type;
 			// spawn wep by name
 			if (args == 1){
 				Type = L4D2Wep_IdentifyItemByName(sTemp, iID);
@@ -214,7 +215,7 @@ public Action CommandSpawnItem(int client, int args)
 
 				iID = StringToInt(sTemp);
 				GetCmdArg(2, sTemp, sizeof(sTemp));
-				Type = view_as<ItemType>(StringToInt(sTemp));
+				Type = StringToInt(sTemp);
 			}
 
 			if (!L4D2Wep_IsValidItemAndID(iID, Type)){
@@ -304,13 +305,13 @@ public Action CommandEquip(int client, int args)
 {
 	if (client){
 
-		char sTemp[L4DWEP_NAME_LEN];
+		char sTemp[L4D2WEP_NAME_LEN];
 		GetCmdArg(1, sTemp, sizeof(sTemp));
 
 		if (args == 1 || args == 2){
 
 			int iID;
-			ItemType Type;
+			int Type;
 			// spawn wep by name
 			if (args == 1){
 				Type = L4D2Wep_IdentifyItemByName(sTemp, iID);
@@ -320,7 +321,7 @@ public Action CommandEquip(int client, int args)
 
 				iID = StringToInt(sTemp);
 				GetCmdArg(2, sTemp, sizeof(sTemp));
-				Type = view_as<ItemType>(StringToInt(sTemp));
+				Type = StringToInt(sTemp);
 			}
 
 			if (!L4D2Wep_IsValidItemAndID(iID, Type)){
@@ -360,3 +361,23 @@ public Action CommandEquip(int client, int args)
 	return Plugin_Handled;
 }
 
+public Action CommandSet(int client, int args)
+{
+	if (client){
+
+		if (!args)
+			ReplyToCommand(client, "Max ammo: %d", L4D2Wep_GetPlayerAmmo(client));
+		else {
+
+			char sTemp[4];
+			GetCmdArg(1, sTemp, sizeof(sTemp));
+			int ammo = StringToInt(sTemp);
+
+			if (L4D2Wep_SetPlayerAmmo(client, ammo))
+				ReplyToCommand(client, "Set max ammo to %d", ammo);
+			else
+				ReplyToCommand(client, "Failed to set max ammo");
+		}
+	}
+	return Plugin_Handled;
+}

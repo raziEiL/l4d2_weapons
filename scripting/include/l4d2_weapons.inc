@@ -1,13 +1,13 @@
 /**
  * vim: set ts=4 :
  * =============================================================================
- * l4d2_weapons
- * Provides a set of functions for weapon/melee identification and manipulation.
- * GitHub: https://github.com/raziEiL/l4d2_weapons
+ *  File:			l4d2_weapons.inc
+ *  Language:       SourcePawn
+ *  Description:	Provides a set of functions for weapon/melee identification and manipulation.
+ *  Version:        1.2
+ *  Credits:        Forked from https://github.com/MatthewClair/sourcemod-plugins
  *
- * l4d2_weapons (C)2019 raziEiL [disawar1] <mr.raz4291@gmail.com>
- * Forked from MatthewClair/sourcemod-plugins
- * SourceMod (C)2004-2008 AlliedModders LLC.  All rights reserved.
+ *  Copyright (C) 2019-2020 raziEiL [disawar1] <mr.raz4291@gmail.com>
  * =============================================================================
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -21,15 +21,6 @@
  *
  * You should have received a copy of the GNU General Public License along with
  * this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * As a special exception, AlliedModders LLC gives you permission to link the
- * code of this program (as well as its derivative works) to "Half-Life 2," the
- * "Source Engine," the "SourcePawn JIT," and any Game MODs that run on software
- * by the Valve Corporation.  You must obey the GNU General Public License in
- * all respects for all other code used.  Additionally, AlliedModders LLC grants
- * this exception to all derivative works.  AlliedModders LLC defines further
- * exceptions, found in LICENSE.txt (as of this writing, version JULY-31-2007),
- * or <http://www.sourcemod.net/license.php>.
  */
 
 #include <sourcemod>
@@ -38,9 +29,9 @@
 #if defined __l4d2_weapons_inc__
 #endinput
 #endif
-#define __l4d2_weapons_inc__ "1.1"
+#define __l4d2_weapons_inc__ "1.2"
 
-#define L4DWEP_NAME_LEN 64
+#define L4D2WEP_NAME_LEN 64
 
 /*
 |==========================================================================
@@ -53,7 +44,7 @@
 | upgrade_laser_sight, weapon_upgradepack_explosive_spawn, weapon_upgradepack_incendiary_spawn
 |
 */
-enum ()
+enum
 {
 	WEPID_NONE,             // 0
 	WEPID_PISTOL,           // 1
@@ -114,7 +105,7 @@ enum ()
 	WEPID_SIZE
 };
 
-enum IdentifyType
+enum // IDENTIFY
 {
 	IDENTIFY_SPAWN = (1<<0),	// 1 Identify any "_spawn" classes
 	IDENTIFY_SINGLE = (1<<1), // 2 Identify any single weapons ("weapons_" classes)
@@ -154,7 +145,7 @@ static const bool l_bHasSpawnClass[WEPID_SIZE] =
 };
 
 // Weapon names for each of the weapons, used in identification.
-static const char l_sWeaponNames[WEPID_SIZE][L4DWEP_NAME_LEN] =
+static const char l_sWeaponNames[WEPID_SIZE][L4D2WEP_NAME_LEN] =
 {
 	"weapon_none", "weapon_pistol", "weapon_smg",                                            // 0
 	"weapon_pumpshotgun", "weapon_autoshotgun", "weapon_rifle",                              // 3
@@ -420,9 +411,10 @@ stock int L4D2Wep_NameToIDEx(char[] weaponName)
  * @remark Should work on most weapon ents--even spawns, singles, held, etc.
  *
  * @param entity		Index of entity to identify
+ * @param flags         IDENTIFY bits
  * @return WEPID for the entity if it is a weapon, WEPID_NONE otherwise
  */
-stock int L4D2Wep_Identify(int entity, IdentifyType flags = IDENTIFY_SAFE)
+stock int L4D2Wep_Identify(int entity, int flags = IDENTIFY_SAFE)
 {
 	if(L4D2Wep_IsValidAndEntity(entity)){
 
@@ -517,7 +509,7 @@ stock bool L4D2Wep_IsEntity(int entity)
 | MELEEID enumerations are arbitrary.
 |
 */
-enum ()
+enum
 {
 	MELEEID_NONE = -1,
 	MELEEID_FIREAXE,
@@ -547,7 +539,7 @@ enum ()
 */
 
 // Melee names for each of the melee, used in identification/game
-static const char l_sMeleeNames[MELEEID_SIZE][L4DWEP_NAME_LEN] =
+static const char l_sMeleeNames[MELEEID_SIZE][L4D2WEP_NAME_LEN] =
 {
 	"fireaxe",
 	"baseball_bat",
@@ -589,7 +581,7 @@ static const char l_sMeleeModels[MELEEID_SIZE][PLATFORM_MAX_PATH] =
 };
 
 static StringMap l_mMeleeNames;
-static char l_sAvailableMelee[MELEEID_SIZE][L4DWEP_NAME_LEN];
+static char l_sAvailableMelee[MELEEID_SIZE][L4D2WEP_NAME_LEN];
 static int l_iAvailableMeleeCount;
 
 stock static void InitMeleeNamesMap()
@@ -667,14 +659,14 @@ stock int L4D2Wep_MeleeNameToID(char[] meleeName)
  * Identifies a entity as a MELEEID.
  *
  * @param entity		Index of entity to identify
- * @param identifyFlags			Identifies weapon_melee_spawn, weapon_item_spawn classes
+ * @param flags         IDENTIFY bits
  * @return MELEEID for the entity if it is a weapon_melee, MELEEID_NONE otherwise
  */
-stock int L4D2Wep_IdentifyMelee(int entity, IdentifyType flags = IDENTIFY_SAFE)
+stock int L4D2Wep_IdentifyMelee(int entity, int flags = IDENTIFY_SAFE)
 {
 	if (L4D2Wep_IsValidAndEntity(entity)){
 
-		char sMelee[L4DWEP_NAME_LEN];
+		char sMelee[L4D2WEP_NAME_LEN];
 		if (((flags & (IDENTIFY_SINGLE|IDENTIFY_HOLD)) && HasEntProp(entity, Prop_Data, "m_strMapSetScriptName") && GetEntPropString(entity, Prop_Data, "m_strMapSetScriptName", sMelee, sizeof(sMelee))) ||
 		((flags & IDENTIFY_SPAWN) && HasEntProp(entity, Prop_Data, "m_iszMeleeWeapon") && GetEntPropString(entity, Prop_Data, "m_iszMeleeWeapon", sMelee, sizeof(sMelee)))){
 
@@ -755,7 +747,7 @@ stock void L4D2Wep_PrecacheMeleeModels()
 |
 */
 
-enum ItemType
+enum // ItemType
 {
 	ITEM_NONE = -1,
 	ITEM_WEP,
@@ -763,10 +755,10 @@ enum ItemType
 }
 
 // Identifies a entity as ItemType
-stock ItemType L4D2Wep_IdentifyItemByEnt(int entity, int &anyID = 0, IdentifyType flags = IDENTIFY_SAFE)
+stock int L4D2Wep_IdentifyItemByEnt(int entity, int &anyID = 0, int flags = IDENTIFY_SAFE)
 {
 	int iID = L4D2Wep_IdentifyMelee(entity, flags);
-	ItemType Type;
+	int Type;
 
 	if (iID == MELEEID_NONE){
 
@@ -785,10 +777,10 @@ stock ItemType L4D2Wep_IdentifyItemByEnt(int entity, int &anyID = 0, IdentifyTyp
 }
 
 // Identifies a string name as ItemType
-stock ItemType L4D2Wep_IdentifyItemByName(char[] anyName, int &anyID = 0)
+stock int L4D2Wep_IdentifyItemByName(char[] anyName, int &anyID = 0)
 {
 	int iID = L4D2Wep_MeleeNameToID(anyName);
-	ItemType Type;
+	int Type;
 
 	if (iID == MELEEID_NONE){
 
@@ -809,39 +801,39 @@ stock ItemType L4D2Wep_IdentifyItemByName(char[] anyName, int &anyID = 0)
 stock int L4D2Wep_IdentifyEquipSlot(int entity)
 {
 	int iID;
-	ItemType Type = L4D2Wep_IdentifyItemByEnt(entity, iID, IDENTIFY_SINGLE);
+	int Type = L4D2Wep_IdentifyItemByEnt(entity, iID, IDENTIFY_SINGLE);
 	if (Type != ITEM_NONE && !L4D2Wep_IsItemNoneID(iID, Type) && L4D2Wep_IsValidItemID(iID, Type))
 		return (Type == ITEM_WEP ? l_iWeaponSlots[iID] : 1);
 	return -1;
 }
 
 // full check
-stock bool L4D2Wep_IsValidItemAndID(int anyID, ItemType type)
+stock bool L4D2Wep_IsValidItemAndID(int anyID, int itemType)
 {
-	return type != ITEM_NONE && !L4D2Wep_IsItemNoneID(anyID, type) && L4D2Wep_IsValidItemID(anyID, type);
+	return itemType != ITEM_NONE && !L4D2Wep_IsItemNoneID(anyID, itemType) && L4D2Wep_IsValidItemID(anyID, itemType);
 }
 
 // check for both weapon and melee none id
-stock bool L4D2Wep_IsItemNoneID(int anyID, ItemType type)
+stock bool L4D2Wep_IsItemNoneID(int anyID, int itemType)
 {
-	return anyID == (type == ITEM_WEP ? WEPID_NONE : MELEEID_NONE);
+	return anyID == (itemType == ITEM_WEP ? WEPID_NONE : MELEEID_NONE);
 }
 
 // check for both weapon and melee garbage values
-stock bool L4D2Wep_IsValidItemID(int anyID, ItemType type)
+stock bool L4D2Wep_IsValidItemID(int anyID, int itemType)
 {
-	return type == ITEM_WEP ? L4D2Wep_IsValidID(anyID) : L4D2Wep_IsValidMeleeID(anyID);
+	return itemType == ITEM_WEP ? L4D2Wep_IsValidID(anyID) : L4D2Wep_IsValidMeleeID(anyID);
 }
 
 // Uses cheat command to give an item to player.
-stock void L4DWep_GiveItemByName(int client, char[] weaponName)
+stock void L4D2Wep_GiveItemByName(int client, char[] weaponName)
 {
 	CheatCommand(client, "give", StrEqual(weaponName, l_sWeaponNames[WEPID_AMMO]) ? "ammo" : weaponName);
 }
 
-stock void L4DWep_GiveItemByID(int client, int anyID, ItemType type)
+stock void L4D2Wep_GiveItemByID(int client, int anyID, int itemType)
 {
-	CheatCommand(client, "give", type == ITEM_WEP ? (anyID == WEPID_AMMO ? "ammo" : l_sWeaponNames[anyID]) : l_sMeleeNames[anyID]);
+	CheatCommand(client, "give", itemType == ITEM_WEP ? (anyID == WEPID_AMMO ? "ammo" : l_sWeaponNames[anyID]) : l_sMeleeNames[anyID]);
 }
 /*
 |--------------------------------------------------------------------------
@@ -858,7 +850,7 @@ stock static void CheatCommand(int client, char[] command, char[] args = "")
 
 /*
 |==========================================================================
-| AMMO HELPER STRUCTURE
+| AMMO STRUCTURE
 |==========================================================================
 |
 | Used to detect and set max ammo for WEAPON SPAWN FEATURE.
@@ -867,7 +859,7 @@ stock static void CheatCommand(int client, char[] command, char[] args = "")
 */
 
 // Supports only primary weapons + chainsaw
-enum AmmoID
+enum
 {
 	AMMOID_NONE = -1,
 	AMMOID_ASHOTGUN,
@@ -878,17 +870,18 @@ enum AmmoID
 	AMMOID_RIFLE, // 5
 	AMMOID_SHOTGUN,
 	AMMOID_SMG,
-	AMMOID_SNIPER // 8
+	AMMOID_SNIPER, // 8
+	AMMOID_SIZE
 }
 /*
 |--------------------------------------------------------------------------
 | AMMO HELPER PRIVATE STRUCTURE
 |--------------------------------------------------------------------------
 */
-static ConVar l_hCvarAmmo[AmmoID];
-static int l_iCvarAmmo[AmmoID];
+static ConVar l_hCvarAmmo[AMMOID_SIZE];
+static int l_iCvarAmmo[AMMOID_SIZE];
 
-static const char l_sCvarAmmoNames[AmmoID][L4DWEP_NAME_LEN] =
+static const char l_sCvarAmmoNames[AMMOID_SIZE][L4D2WEP_NAME_LEN] =
 {
 	"ammo_autoshotgun_max",
 	"ammo_chainsaw_max",
@@ -903,7 +896,7 @@ static const char l_sCvarAmmoNames[AmmoID][L4DWEP_NAME_LEN] =
 
 stock static void GetAmmoCvars()
 {
-	for (AmmoID i; i < AmmoID; i++)
+	for (int i; i < AMMOID_SIZE; i++)
 		l_iCvarAmmo[i] = l_hCvarAmmo[i].IntValue;
 }
 
@@ -919,17 +912,17 @@ stock static void GetAmmoCvars()
  *
  * @noreturn
  */
-stock void L4DWep_InitAmmoCvars()
+stock void L4D2Wep_InitAmmoCvars()
 {
-	for (AmmoID i; i < AmmoID; i++){
+	for (int i; i < AMMOID_SIZE; i++){
 		l_hCvarAmmo[i] = FindConVar(l_sCvarAmmoNames[i]);
 		l_iCvarAmmo[i] = l_hCvarAmmo[i].IntValue;
-		l_hCvarAmmo[i].AddChangeHook(L4DWep_ch_CvarAmmoChanged);
+		l_hCvarAmmo[i].AddChangeHook(L4D2Wep_ch_CvarAmmoChanged);
 	}
 }
 
-// @return AmmoID if wepID is supported, AMMOID_NONE otherwise (there no ammo convar for this weapon)
-stock AmmoID L4DWep_WepIDToAmmoID(int wepID)
+// @return AMMOID if wepID is supported, AMMOID_NONE otherwise (there no ammo convar for this weapon)
+stock int L4D2Wep_WepIDToAmmoID(int wepID)
 {
 	switch (wepID)
 	{
@@ -955,33 +948,103 @@ stock AmmoID L4DWep_WepIDToAmmoID(int wepID)
 	return AMMOID_NONE;
 }
 
-// @return max ammo from convar for ammoID
-stock int L4DWep_GetAmmo(AmmoID ammoID)
+// @return max ammo from convar for AMMOID
+stock int L4D2Wep_GetAmmo(int ammoID)
 {
 	if (l_hCvarAmmo[ammoID] == null)
-		L4DWep_InitAmmoCvars();
+		L4D2Wep_InitAmmoCvars();
 	return l_iCvarAmmo[ammoID];
 }
 
 // set max ammo to weapon entity by wepID
-stock bool L4DWep_SetAmmoByID(int entity, int wepID)
+stock bool L4D2Wep_SetAmmoByID(int entity, int wepID)
 {
 	if (HasEntProp(entity, Prop_Send, "m_iExtraPrimaryAmmo")){
 
-		AmmoID Ammo = L4DWep_WepIDToAmmoID(wepID);
+		int Ammo = L4D2Wep_WepIDToAmmoID(wepID);
 
 		if (Ammo != AMMOID_NONE){
-			SetEntProp(entity, Prop_Send, "m_iExtraPrimaryAmmo", L4DWep_GetAmmo(Ammo), 4);
+			SetEntProp(entity, Prop_Send, "m_iExtraPrimaryAmmo", L4D2Wep_GetAmmo(Ammo), 4);
 			return true;
 		}
 	}
 	return false;
 }
 
-public void L4DWep_ch_CvarAmmoChanged(ConVar convar, const char[] oldValue, const char[] newValue)
+public void L4D2Wep_ch_CvarAmmoChanged(ConVar convar, const char[] oldValue, const char[] newValue)
 {
 	if (!StrEqual(oldValue, newValue))
 		GetAmmoCvars();
+}
+
+/*
+|==========================================================================
+| AMMO HELPER PLAYER STRUCTURE
+|==========================================================================
+|
+| Used to get and set max ammo for players.
+|
+*/
+static int g_iAmmoOffset; // private
+
+// @return m_iAmmo offset if wepID is supported, 0 otherwise.
+stock int L4D2Wep_WepIDToOffset(int wepID)
+{
+	switch (wepID)
+	{
+		case WEPID_RIFLE, WEPID_RIFLE_DESERT, WEPID_RIFLE_AK47, WEPID_RIFLE_SG552, WEPID_RIFLE_M60:
+			return 12;
+		case WEPID_PUMPSHOTGUN, WEPID_SHOTGUN_CHROME:
+			return 28;
+		case WEPID_AUTOSHOTGUN, WEPID_SHOTGUN_SPAS:
+			return 32;
+		case WEPID_HUNTING_RIFLE:
+			return 36;
+		case WEPID_SMG, WEPID_SMG_SILENCED, WEPID_SMG_MP5:
+			return 20;
+		case WEPID_GRENADE_LAUNCHER:
+			return 68;
+		case WEPID_SNIPER_MILITARY, WEPID_SNIPER_AWP, WEPID_SNIPER_SCOUT:
+			return 40;
+	}
+	return 0;
+}
+
+// @return  The player max ammo count if wepID is supported, -1 otherwise.
+stock int L4D2Wep_GetPlayerAmmo(int client)
+{
+	int wepID = L4D2Wep_Identify(GetPlayerWeaponSlot(client, 0), IDENTIFY_HOLD);
+
+	if (wepID){
+		int offset = L4D2Wep_WepIDToOffset(wepID);
+
+		if (offset){
+			if (!g_iAmmoOffset)
+				g_iAmmoOffset = FindSendPropInfo("CTerrorPlayer", "m_iAmmo");
+
+			return GetEntData(client, g_iAmmoOffset + offset);
+		}
+	}
+	return -1;
+}
+
+// Sets the player max ammo count
+stock bool L4D2Wep_SetPlayerAmmo(int client, int maxAmmo)
+{
+	int wepID = L4D2Wep_Identify(GetPlayerWeaponSlot(client, 0), IDENTIFY_HOLD);
+
+	if (wepID){
+		int offset = L4D2Wep_WepIDToOffset(wepID);
+
+		if (offset){
+			if (!g_iAmmoOffset)
+				g_iAmmoOffset = FindSendPropInfo("CTerrorPlayer", "m_iAmmo");
+
+			SetEntData(client, g_iAmmoOffset + offset, maxAmmo);
+			return true;
+		}
+	}
+	return false;
 }
 
 /*
@@ -997,7 +1060,7 @@ public void L4DWep_ch_CvarAmmoChanged(ConVar convar, const char[] oldValue, cons
  * Spawn a weapon or melee entity.
  *
  * @param anyID			WEPID or MELEEID
- * @param ItemType		ItemType
+ * @param int           ItemType
  * @param origin		Entity origin
  * @param angles		Entity angles
  * @param applyVecFix	Fixes a weapon origin and angles to make it look better.
@@ -1005,9 +1068,9 @@ public void L4DWep_ch_CvarAmmoChanged(ConVar convar, const char[] oldValue, cons
  * @param count			Max number of weapons given before disappearing (<= 0 infinity). Use it with spawn = true only.
  * @return Entity index on success, or -1 on failure
  */
-stock int L4D2Wep_SpawnItem(int anyID, ItemType type, float origin[3], float angles[3] = {0.0, ...}, bool applyVecFix = true, bool spawn = true, int count = 5)
+stock int L4D2Wep_SpawnItem(int anyID, int itemType, float origin[3], float angles[3] = {0.0, ...}, bool applyVecFix = true, bool spawn = true, int count = 5)
 {
-	switch (type)
+	switch (itemType)
 	{
 		case ITEM_WEP:
 			return L4D2Wep_Spawn(anyID, origin, angles, applyVecFix, spawn, count);
@@ -1037,7 +1100,7 @@ stock int L4D2Wep_Spawn(int wepID, float origin[3], float angles[3] = {0.0, ...}
 
 		int iEnt;
 		bool IsSpawn;
-		char sTemp[L4DWEP_NAME_LEN];
+		char sTemp[L4D2WEP_NAME_LEN];
 
 		if (spawn && l_bHasSpawnClass[wepID]){
 
@@ -1075,7 +1138,7 @@ stock int L4D2Wep_Spawn(int wepID, float origin[3], float angles[3] = {0.0, ...}
 			SetEntityMoveType(iEnt, MOVETYPE_NONE);
 
 			if (!IsSpawn)
-				L4DWep_SetAmmoByID(iEnt, wepID);
+				L4D2Wep_SetAmmoByID(iEnt, wepID);
 		}
 		return iEnt;
 	}
@@ -1100,7 +1163,7 @@ stock int L4D2Wep_SpawnMelee(int meleeID, float origin[3], float angles[3] = {0.
 	if (L4D2Wep_IsValidMelee(l_sMeleeNames[meleeID])){
 
 		int iEnt;
-		char sTemp[L4DWEP_NAME_LEN];
+		char sTemp[L4D2WEP_NAME_LEN];
 
 		if (spawn){
 
