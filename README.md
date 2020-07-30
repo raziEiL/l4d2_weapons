@@ -1,6 +1,5 @@
-# l4d2_weapons
-**Status: in development**  
-The API for SourceMod plugin developers that provides stock of useful weapons function. Basically here the reworked version of **weapons.inc**. The include file was written specifically for **Left 4 Dead 2** under **SourceMod** platform (SourcePawn).
+# l4d2_weapons 
+The API for SourceMod plugin developers that provides stock of useful weapons function. Basically here the reworked version of **weapons.inc**. The include file was written specifically for [Left 4 Dead 2](https://www.l4d.com/blog/) under **SourceMod** platform (SourcePawn).
 
 ## Features:
  - SourceMod 1.7 syntax.
