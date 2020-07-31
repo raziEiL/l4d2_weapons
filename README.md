@@ -9,9 +9,11 @@ The API for SourceMod plugin developers that provides stock of useful weapons fu
 ## API structure
 Since the `weapon_melee` class contains its own melees, the weapons code has been logically divided into two parts: **WEAPON** and **MELEE**. Both parts have functions to check for garbage value and identify their type of weapon. The **ITEM** struct is needed to determine to which type (**WEAPON** / **MELEE**) an entity or weapon name belongs.
 
+
 ## Usages:
-Identify entity or weapon name as `ItemType` and detect weapon type (**WEAPON** / **MELEE**).  
-When you got an `ItemType` you can do following things:
+Use `L4D2Wep_Identify`, `L4D2Wep_NameToIDEx` for **WEAPON** and `L4D2Wep_IdentifyMelee`, `L4D2Wep_MeleeNameToID` functions for **MELEE** to identify their **ID** by entity or class name. 
+If you want the code work for both types (**ITEMS**) use `L4D2Wep_IdentifyItemByName`, `L4D2Wep_IdentifyItemByEnt` functions to identify ([See example](https://github.com/raziEiL/l4d2_weapons/blob/master/scripting/l4d2_weapons_test.sp#L157)). 
+When you got an **WEAPON** / **MELEE** / **ITEM** ID you can do following things:
  - Grab info about: model, weapon name, weapon slot index, check for spawn class
  - Create any weapons as weapon_ or _spawn class (Fixed pos/angles)
  - Create any melees as weapon_melee or weapon_melee_spawn class (Fixed pos/angles)
@@ -88,9 +90,9 @@ void L4D2Wep_FixMeleeModelVectors(int meleeID, float origin[3], float angles[3])
 ```
 
 ## Note:
-**l4d2_weapons** does not provide a way to unlock weapons, for this goal you may use any known plugins or extensions. However, if you unlock any vanilla weapons (like a `knife`) the **l4d2_weapons** will detect it and support.
+**l4d2_weapons** does not provide a way to unlock weapons, for this goal you may use any known plugins or extensions. However, if you unlock any vanilla weapons like a [knife](https://forums.alliedmods.net/showthread.php?p=1709049) the **l4d2_weapons** will detect it and support.
 
-If you have custom weapons on your server and want to **l4d2_weapons** support it you have to edit the code by yourself (look for line `custom melee` for examples)
+If you have custom weapons on your server and want to **l4d2_weapons** support it you have to edit the code by yourself (look at line [custom melee](https://github.com/raziEiL/l4d2_weapons/blob/master/scripting/include/l4d2_weapons.inc#L555) for example).
 
 ## Examples:
 **l4d2_weapons_test.sp** plugin provides examples of how this API can be used.
