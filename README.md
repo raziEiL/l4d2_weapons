@@ -15,11 +15,13 @@ Use `L4D2Wep_Identify`, `L4D2Wep_NameToIDEx` for **WEAPON** and `L4D2Wep_Identif
 If you want the code work for both types (**ITEMS**) use `L4D2Wep_IdentifyItemByName`, `L4D2Wep_IdentifyItemByEnt` functions to identify ([See example](https://github.com/raziEiL/l4d2_weapons/blob/master/scripting/l4d2_weapons_test.sp#L157)). 
 
 When you got an **WEAPON** / **MELEE** / **ITEM** ID you can do following things:
+ - (Filter)[https://github.com/raziEiL/l4d2_weapons/blob/master/scripting/include/l4d2_weapons.inc#L108] weapon/melee entities.  
  - Grab info about: model, weapon name, weapon slot index, check for spawn class
  - Create any weapons as weapon_ or _spawn class (Fixed pos/angles)
  - Create any melees as weapon_melee or weapon_melee_spawn class (Fixed pos/angles)
  - Give a weapon/melee to player (based on give cmd)
  - Sets a weapon max ammo (based on convars)
+ - Sets a weapon max ammo to player (based on offsets)  
 
 ## API:
 ### Weapons:
