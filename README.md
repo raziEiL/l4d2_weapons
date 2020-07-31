@@ -13,6 +13,7 @@ Since the `weapon_melee` class contains its own melees, the weapons code has bee
 ## Usages:
 Use `L4D2Wep_Identify`, `L4D2Wep_NameToIDEx` for **WEAPON** and `L4D2Wep_IdentifyMelee`, `L4D2Wep_MeleeNameToID` functions for **MELEE** to identify their **ID** by entity or class name. 
 If you want the code work for both types (**ITEMS**) use `L4D2Wep_IdentifyItemByName`, `L4D2Wep_IdentifyItemByEnt` functions to identify ([See example](https://github.com/raziEiL/l4d2_weapons/blob/master/scripting/l4d2_weapons_test.sp#L157)). 
+
 When you got an **WEAPON** / **MELEE** / **ITEM** ID you can do following things:
  - Grab info about: model, weapon name, weapon slot index, check for spawn class
  - Create any weapons as weapon_ or _spawn class (Fixed pos/angles)
