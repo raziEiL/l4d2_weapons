@@ -16,7 +16,7 @@ When you got an `ItemType` you can do following things:
  - Create any weapons as weapon_ or _spawn class (Fixed pos/angles)
  - Create any melees as weapon_melee or weapon_melee_spawn class (Fixed pos/angles)
  - Give a weapon/melee to player (based on give cmd)
- - Gets a weapon max ammo (based on convars)
+ - Sets a weapon max ammo (based on convars)
 
 ## API:
 ### Weapons:
