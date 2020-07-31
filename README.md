@@ -2,9 +2,9 @@
 The API for SourceMod plugin developers that provides stock of useful weapons function. Basically here the reworked version of **weapons.inc**. The include file was written specifically for [Left 4 Dead 2](https://www.l4d.com/blog/) under [SourceMod](https://www.sourcemod.net/ "SourceMod") platform (SourcePawn).
 
 ## Features:
- - SourceMod 1.7 syntax.
- - Weapons/Melees identification.
- - Provides weapons/melees ID, names, models etc.
+ - Support SourceMod 1.7, 1.11 Transitional Syntax.
+ - A lot of weapons/melees functions.
+ - Provides weapons/melees data: ID, names, models etc.
 
 ## API structure
 Since the `weapon_melee` class contains its own melees, the weapons code has been logically divided into two parts: **WEAPON** and **MELEE**. Both parts have functions to check for garbage value and identify their type of weapon. The **ITEM** struct is needed to determine to which type (**WEAPON** / **MELEE**) an entity or weapon name belongs.
