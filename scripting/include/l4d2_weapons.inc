@@ -29,7 +29,7 @@
 #if defined __l4d2_weapons_inc__
 #endinput
 #endif
-#define __l4d2_weapons_inc__ "1.2"
+#define __l4d2_weapons_inc__ "1.2.1"
 
 #define L4D2WEP_NAME_LEN 64
 
