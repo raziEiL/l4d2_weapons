@@ -56,6 +56,7 @@ int L4D2Wep_MeleeNameToID(char[] meleeName)
 int L4D2Wep_IdentifyMelee(int entity, int flags = IDENTIFY_SAFE)
 void L4D2Wep_OnMapStart()
 bool L4D2Wep_IsValidMelee(char[] meleeName)
+bool L4D2Wep_IsValidMeleeIDEx(int meleeID)
 void L4D2Wep_PrecacheMeleeModels()
 ```
 ### Items:
