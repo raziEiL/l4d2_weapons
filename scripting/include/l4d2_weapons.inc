@@ -4,7 +4,7 @@
  *  File:			l4d2_weapons.inc
  *  Language:       SourcePawn
  *  Description:	Provides a set of functions for weapon/melee identification and manipulation.
- *  Version:        1.2
+ *  Version:        1.2.1
  *  Credits:        Forked from https://github.com/MatthewClair/sourcemod-plugins
  *
  *  Copyright (C) 2019-2020 raziEiL [disawar1] <mr.raz4291@gmail.com>
