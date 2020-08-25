@@ -610,21 +610,21 @@ stock void L4D2Wep_InitMelees()
 }
 
 /**
- * @param meleepID	MELEEID to get string for
+ * @param meleeID	MELEEID to get string for
  * @return 			Melee name identificator string
  */
-stock char L4D2Wep_GetMeleeNameByID(int meleepID)
+stock char L4D2Wep_GetMeleeNameByID(int meleeID)
 {
-	return l_sMeleeNames[meleepID];
+	return l_sMeleeNames[meleeID];
 }
 
 /**
- * @param meleepID	WEPID to get string for
+ * @param meleeID	WEPID to get string for
  * @return 			Melee model string
  */
-stock char L4D2Wep_GetMeleeModelByID(int meleepID)
+stock char L4D2Wep_GetMeleeModelByID(int meleeID)
 {
-	return l_sMeleeModels[meleepID];
+	return l_sMeleeModels[meleeID];
 }
 
 /**
@@ -723,6 +723,18 @@ stock bool L4D2Wep_IsValidMelee(char[] meleeName)
 	}
 
 	return false;
+}
+
+/**
+ * Performs melee checking to determine if a melee is available on current map
+ * @remark Method to detect valid melees via string table (Thanks @Electr0)
+ *
+ * @param meleeID		Melee ID to check for validity
+ * @return True if melee is valid, false otherwise.
+ */
+stock bool L4D2Wep_IsValidMeleeIDEx(int meleeID)
+{
+	return L4D2Wep_IsValidMelee(l_sMeleeNames[meleeID]);
 }
 
 // Precache melee world models. Probably for debugging purpose only.
