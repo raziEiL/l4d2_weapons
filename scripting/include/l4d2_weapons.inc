@@ -4,8 +4,9 @@
  *  File:			l4d2_weapons.inc
  *  Language:       SourcePawn
  *  Description:	Provides a set of functions for weapon/melee identification and manipulation.
- *  Version:        1.2.1
- *  Credits:        Forked from https://github.com/MatthewClair/sourcemod-plugins
+ *  Version:        1.2.2
+ *  Credits:        Forked from https://github.com/MatthewClair/sourcemod-plugins 
+ *					Electr0 for L4D2Wep_IsValidMelee function https://forums.alliedmods.net/member.php?u=152668
  *
  *  Copyright (C) 2019-2020 raziEiL [disawar1] <mr.raz4291@gmail.com>
  * =============================================================================
@@ -29,7 +30,7 @@
 #if defined __l4d2_weapons_inc__
 #endinput
 #endif
-#define __l4d2_weapons_inc__ "1.2.1"
+#define __l4d2_weapons_inc__ "1.2.2"
 
 #define L4D2WEP_NAME_LEN 64
 
@@ -552,6 +553,9 @@ static const char l_sMeleeNames[MELEEID_SIZE][L4D2WEP_NAME_LEN] =
 	"machete",
 	"tonfa",
 	"knife",
+	// The Last Stand update
+	"pitchfork",
+	"shovel",
 	// custom melee
 	"alliance_shield",
 	"fubar",
@@ -573,6 +577,9 @@ static const char l_sMeleeModels[MELEEID_SIZE][PLATFORM_MAX_PATH] =
 	"models/weapons/melee/w_machete.mdl",
 	"models/weapons/melee/w_tonfa.mdl",
 	"models/w_models/weapons/w_knife_t.mdl",
+	// The Last Stand update
+	"models/weapons/melee/w_pitchfork.mdl",
+	"models/weapons/melee/w_shovel.mdl",
 	// custom melee
 	"models/weapons/melee/w_riotshield.mdl",
 	"models/weapons/melee/w_fubar.mdl",
