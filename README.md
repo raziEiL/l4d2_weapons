@@ -9,6 +9,9 @@ The API for SourceMod plugin developers that provides stock of useful weapons fu
 ## API structure
 Since the `weapon_melee` class contains its own melees, the weapons code has been logically divided into two parts: **WEAPON** and **MELEE**. Both parts have functions to check for garbage value and identify their type of weapon. The **ITEM** struct is needed to determine to which type (**WEAPON** / **MELEE**) an entity or weapon name belongs.
 
+## Migration to v1.2 (weapons.inc compatibility)
+Function suffixes have been renamed in v1.2 according to the supported game (Left 4 Dead 2).  
+Find and replace the following prefixes to migrate to v1.2: `L4DWEP_` to `L4D2WEP_`, `L4DWep_` to `L4D2Wep_`  
 
 ## Usages:
 Use `L4D2Wep_Identify`, `L4D2Wep_NameToIDEx` for **WEAPON** and `L4D2Wep_IdentifyMelee`, `L4D2Wep_MeleeNameToID` functions for **MELEE** to identify their **ID** by entity or class name. 
