@@ -623,7 +623,7 @@ stock void L4D2Wep_InitMelees()
  * @param meleeID	MELEEID to get string for
  * @return 			Melee name identificator string
  */
-stock char L4D2Wep_GetMeleeNameByID(int meleeID)
+stock char[] L4D2Wep_GetMeleeNameByID(int meleeID)
 {
 	return l_sMeleeNames[meleeID];
 }
@@ -632,7 +632,7 @@ stock char L4D2Wep_GetMeleeNameByID(int meleeID)
  * @param meleeID	WEPID to get string for
  * @return 			Melee model string
  */
-stock char L4D2Wep_GetMeleeModelByID(int meleeID)
+stock char[] L4D2Wep_GetMeleeModelByID(int meleeID)
 {
 	return l_sMeleeModels[meleeID];
 }
