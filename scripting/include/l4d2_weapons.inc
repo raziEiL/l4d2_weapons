@@ -31,7 +31,7 @@
 #if defined __l4d2_weapons_inc__
 #endinput
 #endif
-#define __l4d2_weapons_inc__ "1.2.2.2"
+#define __l4d2_weapons_inc__ "1.2.2.3"
 
 #define L4D2WEP_NAME_LEN 64
 #define L4D2WEP_TRANS_LEN 64
@@ -1479,3 +1479,56 @@ public void L4D2Wep_OnPhrasesReady()
 	l_loc.PhraseAdd("#_physics", "Physics", _, _, "en");
 	l_loc.PhraseAdd("#_physics", "Физика", _, _, "ru");
 }
+
+stock void PlayerEquip(int client, char[] weap_name)
+{
+    int type, id, iEnt, iCurWep;
+    float vOrigin[3];
+    GetClientAbsOrigin(client, vOrigin);
+    
+    if( weap_name[0] )
+    {
+        type = L4D2Wep_IdentifyItemByName(weap_name, id);
+        if( type == ITEM_MELEE )
+        {
+            if( !L4D2Wep_IsValidMelee(weap_name) )
+                continue;
+        }
+        
+        if( L4D2Wep_IsValidItemAndID(id, type) )
+        {
+            int slot = L4D2Wep_GetSlotByID(id);
+            iEnt = L4D2Wep_SpawnItem(id, type, vOrigin, _, _, false);
+            if( iEnt != -1 )
+            {
+                iCurWep = GetPlayerWeaponSlot(client, slot);
+                if( L4D2Wep_IsValidAndEntity(iCurWep) )
+                {
+                    RemovePlayerItem(client, iCurWep);
+                    AcceptEntityInput(iCurWep, "Kill");
+                }
+                EquipPlayerWeapon(client, iEnt);
+                
+                if( slot == 0 )
+                {
+                    RequestFrame(Frame_SetMaxAmmo, GetClientUserId(client));
+                }
+            }
+        }
+    }
+}
+
+void Frame_SetMaxAmmo(int UserId)
+{
+    int client = GetClientOfUserId(UserId);
+    if( client && IsClientInGame(client) )
+    {
+        int ent = GetPlayerWeaponSlot(client, 0);
+        int wep_id = L4D2Wep_Identify(ent, IDENTIFY_HOLD);
+        int ammoId = L4D2Wep_WepIDToAmmoID(wep_id);
+        if( ammoId != AMMOID_NONE )
+        {
+            L4D2Wep_SetPlayerAmmo(client, L4D2Wep_GetAmmo(ammoId));
+        }
+    }
+} 

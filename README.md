@@ -13,6 +13,7 @@ stock bool L4D2Wep_GetTitle(int wepID, char[] buffer, int maxlength, int client)
 stock char[] L4D2Wep_GetTitleEx(int client, int WepID)
 stock bool L4D2Wep_GetMeleeTitle(int meleeID, char[] buffer, int maxlength, int client)
 stock char[] L4D2Wep_GetMeleeTitleEx(int client, int MeleeID)
+stock void PlayerEquip(int client, char[] weap_name)
 
 ```
 
