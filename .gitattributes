@@ -1,6 +1,3 @@
-$ cat .gitattributes
-*.inc linguist-language=SourcePawn
-*.sp linguist-language=SourcePawn
-
-# Auto detect text files and perform LF normalization
-* text=auto
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text eol=auto
+*.* binary

@@ -26,13 +26,15 @@
 
 #include <sourcemod>
 #include <sdktools>
+#include <localizer>
 
 #if defined __l4d2_weapons_inc__
 #endinput
 #endif
-#define __l4d2_weapons_inc__ "1.2.2"
+#define __l4d2_weapons_inc__ "1.2.2.2"
 
 #define L4D2WEP_NAME_LEN 64
+#define L4D2WEP_TRANS_LEN 64
 
 /*
 |==========================================================================
@@ -291,7 +293,31 @@ static const int l_iWeaponSlots[WEPID_SIZE] =
 	-1  // WEPID_UPGRADE_ITEM
 };
 
+static const char l_sWeaponPhrases[WEPID_SIZE][L4D2WEP_TRANS_LEN] =
+{
+	"", "#L4D_Weapon_Pistol", "#L4D_Weapon_SMG",
+	"#L4D_Weapon_PumpShotgun", "#L4D_Weapon_AutoShotgun", "#L4D_Weapon_AssaultRifle",
+	"#L4D_Weapon_HuntingRifle", "#L4D_Instructor_explain_smg_silenced", "#L4D_Instructor_explain_shotgun_chrome",
+	"#L4D_Instructor_explain_rifle_desert", "#L4D_Instructor_explain_sniper_military", "#L4D_Instructor_explain_shotgun_spas",
+	"#L4D_Weapon_FirstAidKit", "#L4D_Weapon_Molotov", "#L4D_Weapon_PipeBomb",
+	"#L4D_Weapon_PainPills", "#_gascan", "#_propanetank",
+	"#_oxygentank", "#L4D_Instructor_explain_melee", "#L4D_Instructor_explain_chainsaw",
+	"#L4D_Instructor_explain_grenade_launcher", "#L4D_Instructor_explain_ammo_pack", "#L4D_Instructor_explain_adrenaline",
+	"#L4D_Instructor_explain_defibrillator", "#L4D_Instructor_explain_vomitjar", "#L4D_Instructor_explain_rifle_ak47",
+	"#L4D360UI_Multiplayer_Spray_Gnome", "#L4D2_Instructor_explain_gun_shop_item", "#_fireworkcrate",
+	"#L4D_Instructor_explain_upgradepack_incendiary", "#L4D_Instructor_explain_upgradepack_explosive", "#L4D2_Instructor_explain_magnum_pistol",
+	"#_smg_mp5", "#_rifle_sg552", "#_sniper_awp",
+	"#_sniper_scout", "#_rifle_m60", "#_tank_claw",
+	"#L4D_spawn_select_mode_hunter_2_title", "#L4D_spawn_select_mode_hunter_2_title", "#L4D_spawn_select_mode_hunter_2_title",
+	"#L4D_spawn_select_mode_hunter_2_title", "#L4D_spawn_select_mode_hunter_2_title", "#L4D_spawn_select_mode_hunter_2_title",
+	"#L4D2_Instructor_explain_use_mounted_gun", "#L4D_spawn_select_mode_boomer_secondary", "#_splat",
+	"#_pounce", "#_lounge", "#_pull",
+	"#_choke", "#_rock", "#_physics",
+	"#L4D_Instructor_explain_ammo_resupply", "#L4D2_Instructor_explain_upgrade"
+};
+
 static StringMap l_mWeaponNames;
+Localizer l_loc;
 
 stock static void InitNamesMap()
 {
@@ -352,6 +378,32 @@ stock char[] L4D2Wep_GetModelByID(int wepID)
 stock int L4D2Wep_GetSlotByID(int wepID)
 {
 	return l_iWeaponSlots[wepID];
+}
+
+/**
+ * Retrieves the localized weapon title.
+ *
+ * @param wepID			WEPID to get slot for.
+ * @param buffer		Destination string buffer.
+ * @param maxlength		Maximum length of output string buffer.
+ * @param client		Client index which language to translate the title to.
+ *
+ * @return 			True, if weapon title is retrieved successfully, false otherwise.
+ */
+stock bool L4D2Wep_GetTitle(int wepID, char[] buffer, int maxlength, int client)
+{
+	if( !l_loc )
+	{
+		L4D2Wep_InitTitles();
+	}
+	return l_loc.PhraseTranslateToLang(l_sWeaponPhrases[wepID], buffer, maxlength, client);
+}
+
+stock char[] L4D2Wep_GetTitleEx(int client, int WepID)
+{
+	char buffer[64];
+	L4D2Wep_GetTitle(WepID, buffer, sizeof(buffer), client);
+	return buffer;
 }
 
 /**
@@ -590,6 +642,17 @@ static const char l_sMeleeModels[MELEEID_SIZE][PLATFORM_MAX_PATH] =
 	"models/weapons/melee/w_sledgehammer.mdl"
 };
 
+static const char l_sMeleePhrases[MELEEID_SIZE][L4D2WEP_TRANS_LEN] =
+{
+	"#L4D_Melee_FireAxe",	"#L4D_Melee_Baseball_Bat",	"#L4D_Melee_Cricket_Bat",
+	"#L4D_Melee_Crowbar",	"#L4D_Melee_Frying_Pan",	"#_golfclub", // #Gambler_DLC1_GolfClub01
+	"#L4D_Melee_Electric_Guitar",	"#L4D_Melee_Katana",	"#L4D_Melee_Machete",
+	"#L4D_Melee_Tonfa",	"#_knife",
+	"#_pitchfork",	"#_shovel",
+	"#_alliance_shield",	"#_fubar",	"#_nail_board",
+	"#_sledgehammer"
+};
+
 static StringMap l_mMeleeNames;
 static char l_sAvailableMelee[MELEEID_SIZE][L4D2WEP_NAME_LEN];
 static int l_iAvailableMeleeCount;
@@ -756,6 +819,32 @@ stock void L4D2Wep_PrecacheMeleeModels()
 		if (!IsModelPrecached(l_sMeleeModels[i]))
 			PrecacheModel(l_sMeleeModels[i], true);
 	}
+}
+
+/**
+ * Retrieves the localized melee title.
+ *
+ * @param wepID			WEPID to get slot for.
+ * @param buffer		Destination string buffer.
+ * @param maxlength		Maximum length of output string buffer.
+ * @param client		Client index which language to translate the title to.
+ *
+ * @return 			True, if weapon title is retrieved successfully, false otherwise.
+ */
+stock bool L4D2Wep_GetMeleeTitle(int meleeID, char[] buffer, int maxlength, int client)
+{
+	if( !l_loc )
+	{
+		L4D2Wep_InitTitles();
+	}
+	return l_loc.PhraseTranslateToLang(l_sMeleePhrases[meleeID], buffer, maxlength, client);
+}
+
+stock char[] L4D2Wep_GetMeleeTitleEx(int client, int MeleeID)
+{
+	char buffer[64];
+	L4D2Wep_GetMeleeTitle(MeleeID, buffer, sizeof(buffer), client);
+	return buffer;
 }
 
 /*
@@ -1304,4 +1393,89 @@ stock void L4D2Wep_FixMeleeModelVectors(int meleeID, float origin[3], float angl
 		case MELEEID_FUBAR: angles[2] += 90.0;
 		default: angles[1] += 90.0, angles[2] += 90.0;
 	}
+}
+
+stock void L4D2Wep_InitTitles()
+{
+	l_loc = new Localizer();
+	l_loc.Delegate_InitCompleted(L4D2Wep_OnPhrasesReady);
+}
+
+public void L4D2Wep_OnPhrasesReady()
+{
+	// There are no pre-defined translation for these phrases
+	l_loc.PhraseAdd("#_smg_mp5", "SMG MP5", _, _, "en");
+	l_loc.PhraseAdd("#_smg_mp5", "Автомат MP5", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_rifle_sg552", "Rifle SG552", _, _, "en");
+	l_loc.PhraseAdd("#_rifle_sg552", "Автомат SG552", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_sniper_awp", "Sniper AWP", _, _, "en");
+	l_loc.PhraseAdd("#_sniper_awp", "Снайперка AWP", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_sniper_scout", "Sniper Scout", _, _, "en");
+	l_loc.PhraseAdd("#_sniper_scout", "Снайперка разведчика", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_rifle_m60", "Rifle M60", _, _, "en");
+	l_loc.PhraseAdd("#_rifle_m60", "Автомат M60", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_golfclub", "Golf club", _, _, "en");
+	l_loc.PhraseAdd("#_golfclub", "Клюшка для гольфа", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_knife", "Knife", _, _, "en");
+	l_loc.PhraseAdd("#_knife", "Нож", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_pitchfork", "Pitchfork", _, _, "en");
+	l_loc.PhraseAdd("#_pitchfork", "Вилы", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_shovel", "Shovel", _, _, "en");
+	l_loc.PhraseAdd("#_shovel", "Лопата", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_alliance_shield", "Shield", _, _, "en");
+	l_loc.PhraseAdd("#_alliance_shield", "Щит", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_fubar", "Spanner", _, _, "en");
+	l_loc.PhraseAdd("#_fubar", "Гаечный ключ", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_nail_board", "Spiked club", _, _, "en");
+	l_loc.PhraseAdd("#_nail_board", "Шипастая бита", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_sledgehammer", "Sledgehammer", _, _, "en");
+	l_loc.PhraseAdd("#_sledgehammer", "Кувалда", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_gascan", "Gas canister", _, _, "en");
+	l_loc.PhraseAdd("#_gascan", "Канистра с бензином", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_propanetank", "Propane tank", _, _, "en");
+	l_loc.PhraseAdd("#_propanetank", "Баллон с пропаном", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_oxygentank", "Oxygen tank", _, _, "en");
+	l_loc.PhraseAdd("#_oxygentank", "Баллон с кислородом", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_fireworkcrate", "Firework crate", _, _, "en");
+	l_loc.PhraseAdd("#_fireworkcrate", "Коробка с фейерверками", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_lounge", "Lounge", _, _, "en");
+	l_loc.PhraseAdd("#_lounge", "Стойка", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_lunge", "Lunge", _, _, "en");
+	l_loc.PhraseAdd("#_lunge", "Выпад", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_pounce", "Pounce", _, _, "en");
+	l_loc.PhraseAdd("#_pounce", "Бросок", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_pull", "Pull", _, _, "en");
+	l_loc.PhraseAdd("#_pull", "Захват", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_splat", "Splat", _, _, "en");
+	l_loc.PhraseAdd("#_splat", "Брызги", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_tank_claw", "Claw", _, _, "en");
+	l_loc.PhraseAdd("#_tank_claw", "Лапа", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_rock", "Rock", _, _, "en");
+	l_loc.PhraseAdd("#_rock", "Камень", _, _, "ru");
+	
+	l_loc.PhraseAdd("#_physics", "Physics", _, _, "en");
+	l_loc.PhraseAdd("#_physics", "Физика", _, _, "ru");
 }

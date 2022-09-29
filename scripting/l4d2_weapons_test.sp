@@ -1,4 +1,4 @@
-#define PLUGIN_VERSION "1.3"
+#define PLUGIN_VERSION "1.3.1"
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -32,12 +32,28 @@ public void OnPluginStart()
 	RegAdminCmd("sm_l4d2wep_spawn_all", CommandSpawnItems, ADMFLAG_ROOT, "Spawns items with 0.5s interval");
 	RegAdminCmd("sm_l4d2wep_eq", CommandEquip, ADMFLAG_ROOT, "Creates and equip a single weapon/melee to player slot");
 	RegAdminCmd("sm_l4d2wep_set", CommandSet, ADMFLAG_ROOT, "Sets the player max ammo count");
+	RegAdminCmd("sm_l4d2weploc", CommandWepLoc, ADMFLAG_ROOT, "Weapon structure test with multilingual translation support");
 }
 
 public void OnMapStart()
 {
 	L4D2Wep_OnMapStart();
 	g_hCmdSpawnTimer = null;
+}
+
+public Action CommandWepLoc(int client, int args)
+{
+	// gunshot
+	for (int i = 0; i < WEPID_TANK_CLAW; i++)
+	{
+		ReplyToCommand(client, "id: %i, title: '%s'", i, L4D2Wep_GetTitleEx(client, i));
+	}
+	// melee
+	for (int i = WEPID_TANK_CLAW; i < WEPID_SIZE; i++)
+	{
+		ReplyToCommand(client, "id: %i, title: '%s'", i, L4D2Wep_GetMeleeTitleEx(client, i));
+	}
+	return Plugin_Handled;
 }
 
 public Action CommandWep(int args)
@@ -115,6 +131,7 @@ public Action CommandIdentify(int args)
 			LogMessage("%d ent %d, ID %d, Class '%s', Name '%s'", ++iCount, i, iWepID, sClassName, L4D2Wep_GetNameByID(iWepID));
 		}
 	}
+	return Plugin_Handled;
 }
 // weapon_melee_spawn, weapon_item_spawn
 public Action CommandIdentifyMelees(int args)
@@ -152,6 +169,7 @@ public Action CommandIdentifyMelees(int args)
 			LogMessage("%d ent %d, ID %d, Class '%s', Name '%s'", ++iCount, i, iMeleeID, sClassName, L4D2Wep_GetMeleeNameByID(iMeleeID));
 		}
 	}
+	return Plugin_Handled;
 }
 
 public Action CommandGiveItem(int client, int args)
